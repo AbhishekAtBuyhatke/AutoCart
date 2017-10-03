@@ -1,11 +1,9 @@
-package com.buyhatke.autocart;
+package com.buyhatke.autocart.Activity;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -20,6 +18,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.buyhatke.autocart.AutoCart;
+import com.buyhatke.autocart.R;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 
