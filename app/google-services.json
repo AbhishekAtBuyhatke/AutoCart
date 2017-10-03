@@ -1,0 +1,65 @@
+{
+  "project_info": {
+    "project_number": "643000429771",
+    "firebase_url": "https://fir-autocart.firebaseio.com",
+    "project_id": "firebase-autocart",
+    "storage_bucket": "firebase-autocart.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:643000429771:android:2f10b0dc84134ef6",
+        "android_client_info": {
+          "package_name": "com.buyhatke.autocart"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "643000429771-bhg4b7imefkhb3movb3g82lgmi77fojd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.buyhatke.autocart",
+            "certificate_hash": "f5eb56720e9260fa20254d29043d7d80fa0e55f0"
+          }
+        },
+        {
+          "client_id": "643000429771-52sjdp1nanmln43i3u0cs7k7nsc16gk6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.buyhatke.autocart",
+            "certificate_hash": "f297012251eabd3cfe83972b3723dadef76ab3d7"
+          }
+        },
+        {
+          "client_id": "643000429771-u1k0dqmdnfpk5jdbaib8jt4mfch5d1b4.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "643000429771-ulv5hm3vq5qoslf6jl8dhfg6s367cfn6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8q1hd_TwNzzNK3L6yYPDCuA-HK4-JrXQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-106783285-1"
+          }
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
