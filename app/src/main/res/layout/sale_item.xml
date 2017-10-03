@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:orientation="horizontal"
+    android:paddingLeft="15dp"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="5dp"
+    android:layout_marginRight="5dp"
+    android:layout_marginBottom="5dp"
+    android:padding="5dp"
+    android:gravity="center_vertical"
+    android:background="#fff">
+
+    <TextView
+        android:layout_weight="2"
+        android:id="@+id/tv_item_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:paddingLeft="5dp"
+        android:text="Redmi 4a"/>
+
+    <TextView
+        android:id="@+id/tv_item_price"
+        android:layout_width="70dp"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:visibility="gone"
+        android:text="Rs. 4999"/>
+
+    <TextView
+        android:id="@+id/tv_item_time_details"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:textSize="12sp"
+        android:visibility="visible"
+        android:layout_height="wrap_content"
+        android:text="Friday, 4 P.M."/>
+
+    <Switch
+        android:id="@+id/switch_item_active"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

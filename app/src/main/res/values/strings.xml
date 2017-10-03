@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">AutoCart</string>
+    <string name="action_help">Help</string>
+    <string name="choose_variant">Choose variant from this page</string>
+    <string name="help">1. Subscribe to the product well before deadline by clicking on the product name. \n\n
+                        2. Activate the switch placed next to product you want to book. \n\n
+                        3. 10 minutes before sale time, a notification will come. Click on that and make sure you are logged in. \n\n
+                        4. 3 minutes before sale time,if you are not on website or the app is not opened, you will receive another notification.
+                            Clicking the same will take you to the product page. If you are on the website, product page will be loaded automatically. \n\n
+                        5. You will be prompted to choose variant, you want to book. Select one. \n\n
+                        6. Sit back and relax. It will automatically add the product to your cart when sale goes live.</string>
+</resources>
