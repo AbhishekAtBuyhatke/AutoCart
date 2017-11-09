@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,7 +35,6 @@ public class WebViewActivity extends AppCompatActivity {
     private List<String> variansts = new ArrayList<>();
     private static int clickID = 0;
     private static final String newUA= "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.107 Safari/537.36";
-    private boolean applyClickAgain;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +45,6 @@ public class WebViewActivity extends AppCompatActivity {
 
         pb = (ProgressBar) findViewById(R.id.progress_bar);
         pb.setMax(100);
-        applyClickAgain = false;
 
         webView = (WebView) findViewById(R.id.webview);
         webView.setWebViewClient(new MyWebClient());
@@ -96,7 +95,6 @@ public class WebViewActivity extends AppCompatActivity {
                 showDialog();
             } else if (name.equals("Reload")){
                 Toast.makeText(WebViewActivity.this, "Reloading page to try adding to cart again.", Toast.LENGTH_SHORT).show();
-                applyClickAgain = true;
                 AutoCart.sendUpdateToServer("Reloading", variansts.get(clickID));
             } else if (name.equals("Success")){
                 AutoCart.sendUpdateToServer("SUCCESS", variansts.get(clickID));
@@ -115,6 +113,7 @@ public class WebViewActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 clickID = which;
+                applyClick();
                 Toast.makeText(WebViewActivity.this, variansts.get(which)+ " selected!", Toast.LENGTH_LONG).show();
                 dialog.dismiss();
             }
@@ -133,6 +132,9 @@ public class WebViewActivity extends AppCompatActivity {
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
             pb.setVisibility(View.VISIBLE);
+            if (url.contains("www.amazon.in")){
+                applyClick();
+            }
         }
 
         @Override
@@ -148,9 +150,8 @@ public class WebViewActivity extends AppCompatActivity {
                         if (!url.contains("signin"))
                             readVariants();
                     }
-                },5000);
-            } else if (applyClickAgain){
-                applyClickAgain = false;
+                },10*000);
+            } else if (url.contains("www.amazon.in")){
                 applyClick();
             }
         }
@@ -188,12 +189,12 @@ public class WebViewActivity extends AppCompatActivity {
                 "       }" +
                 "   }" +
                 "   else if(document.querySelectorAll('.dealStatusMessageHolder').length > 0){" +
-                "       if(document.querySelectorAll('.dealStatusMessageHolder')[0].innerText.split('Checking Deal').length > 0){" +
                 "           setTimeout(function(){" +
-                "               window.MyTag.addItem('Reload');" +
-                "               window.location.reload();" +
+                "               if(document.querySelectorAll('.dealStatusMessageHolder')[0].innerText.split('Checking Deal').length > 0){" +
+                "                   window.MyTag.addItem('Reload');" +
+                "                   window.location.reload();" +
+                "               }" +
                 "           },5000);" +
-                "       }" +
                 "   }" +
                 "}" +
                 "addToCart();");
