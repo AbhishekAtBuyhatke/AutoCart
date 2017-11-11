@@ -21,4 +21,5 @@ public class Constants {
     final public static String REGISTER_URL = "https://compare.buyhatke.com/application/registerApp.php?platform=android";
     final public static String SET_TOKEN_URL = "http://buyhatke.com/application/setToken.php?platform=android";
     final public static String SALE_URL = "https://compare.buyhatke.com/options/flashSaleNew.php";
+    final public static String FEEDBACK_URL = "https://goo.gl/forms/J22S1m65wDMq8qir1";
 }
