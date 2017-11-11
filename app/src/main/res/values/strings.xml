@@ -9,4 +9,10 @@
                             Clicking the same will take you to the product page. If you are on the website, product page will be loaded automatically. \n\n
                         5. You will be prompted to choose variant, you want to book. Select one. \n\n
                         6. Sit back and relax. It will automatically add the product to your cart when sale goes live.</string>
+
+    <string name="review_text1">Help us get better:</string>
+    <string name="review_text2">Do you like the app?</string>
+    <string name="review_text_love">Loved it</string>
+    <string name="review_text_hate">Hated it</string>
+
 </resources>
