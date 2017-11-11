@@ -98,6 +98,7 @@ public class WebViewActivity extends AppCompatActivity {
                 AutoCart.sendUpdateToServer("Reloading", variansts.get(clickID));
             } else if (name.equals("Success")){
                 AutoCart.sendUpdateToServer("SUCCESS", variansts.get(clickID));
+                MainActivity.showReviewDialog(WebViewActivity.this);
             } else {
                 variansts.add(name.trim());
             }
