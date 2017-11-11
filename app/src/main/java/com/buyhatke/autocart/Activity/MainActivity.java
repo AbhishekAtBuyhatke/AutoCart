@@ -20,9 +20,11 @@ import android.support.v7.widget.RecyclerView;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -47,6 +49,7 @@ import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import static com.buyhatke.autocart.Constants.FEEDBACK_URL;
 import static com.buyhatke.autocart.Constants.SALE_URL;
 import static com.buyhatke.autocart.Constants.SHARED_PREF;
 
@@ -64,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SharedPreferences sharedPref;
     private static final String IS_REGISTERED = "isRegistered";
     private static final String REGISTER_TAG = "Registration";
+    private static final String APP_OPEN_COUNT = "appOpenCount";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         queue = Volley.newRequestQueue(this);
+        sharedPref = getSharedPreferences(SHARED_PREF, MODE_PRIVATE);
 
         pd = new ProgressDialog(this);
         pd.setMessage("Fetching sales from server...");
@@ -115,8 +120,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         };
-
+        checkAppOpenCount();
         setupRecyclerView();
+    }
+
+    private void checkAppOpenCount() {
+        int count = sharedPref.getInt(APP_OPEN_COUNT,0);
+        if (count == 5){
+            showReviewDialog(this);
+        } else if (count < 5){
+            count++;
+            sharedPref.edit().putInt(APP_OPEN_COUNT, count).apply();
+        }
     }
 
     private void setupRecyclerView() {
@@ -129,6 +144,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rvFlipkart.setHasFixedSize(true);
 
         prepareItems();
+    }
+
+    public static void showReviewDialog(final Context context){
+        final Dialog dialog = new Dialog(context, R.style.DialogSlideAnim);
+        dialog.setContentView(R.layout.review_popup);
+        dialog.setCancelable(false);
+        dialog.getWindow().setGravity(Gravity.BOTTOM);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        dialog.show();
+        dialog.findViewById(R.id.ll_review_liked_it).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                Uri uri = Uri.parse("market://details?id=" + context.getPackageName());
+                Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+                goToMarket.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY |
+                        Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
+                        Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
+                context.startActivity(goToMarket);
+            }
+        });
+        dialog.findViewById(R.id.ll_review_hated_it).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                context.startActivity(new Intent(Intent.ACTION_VIEW,
+                        Uri.parse(FEEDBACK_URL)));
+            }
+        });
+        dialog.findViewById(R.id.ib_review_dismiss).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
     }
 
     private void prepareItems() {
@@ -144,7 +195,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     rvFlipkart.setAdapter(new SaleAdapter(saleItems, MainActivity.this, false));
                     saleItems = gson.fromJson(jsonArray.getString(2), SaleItem[].class);
                     rvAmazon.setAdapter(new SaleAdapter(saleItems, MainActivity.this, true));
-                    sharedPref = getSharedPreferences(SHARED_PREF, MODE_PRIVATE);
                     if (!sharedPref.getBoolean(IS_REGISTERED, false)) {
                         registerApp();
                     }
