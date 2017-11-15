@@ -33,8 +33,9 @@ public class WebViewActivity extends AppCompatActivity {
     private ProgressBar pb;
     private static boolean readNode;
     private List<String> variansts = new ArrayList<>();
-    private static int clickID = 0;
+    private static int clickID = 18;
     private static final String newUA= "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.107 Safari/537.36";
+    private boolean reviewDialogDone = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +66,7 @@ public class WebViewActivity extends AppCompatActivity {
         String url = getIntent().getStringExtra("url");
         readNode = getIntent().getBooleanExtra("readNode",false);
         webView.loadUrl(url);
+        //webView.loadUrl("https://www.amazon.in/gp/goldbox/");
     }
 
     @Override
@@ -97,8 +99,16 @@ public class WebViewActivity extends AppCompatActivity {
                 Toast.makeText(WebViewActivity.this, "Reloading page to try adding to cart again.", Toast.LENGTH_SHORT).show();
                 AutoCart.sendUpdateToServer("Reloading", variansts.get(clickID));
             } else if (name.equals("Success")){
-                AutoCart.sendUpdateToServer("SUCCESS", variansts.get(clickID));
-                MainActivity.showReviewDialog(WebViewActivity.this);
+                if (!reviewDialogDone){
+                    AutoCart.sendUpdateToServer("SUCCESS", variansts.get(clickID));
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            MainActivity.showReviewDialog(WebViewActivity.this);
+                        }
+                    },5 * 1000);
+                    reviewDialogDone = true;
+                }
             } else {
                 variansts.add(name.trim());
             }
@@ -114,7 +124,12 @@ public class WebViewActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 clickID = which;
-                applyClick();
+               webView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        applyClick();
+                    }
+                });
                 Toast.makeText(WebViewActivity.this, variansts.get(which)+ " selected!", Toast.LENGTH_LONG).show();
                 dialog.dismiss();
             }
