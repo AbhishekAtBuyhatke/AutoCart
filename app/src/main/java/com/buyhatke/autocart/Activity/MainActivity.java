@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String IS_REGISTERED = "isRegistered";
     private static final String REGISTER_TAG = "Registration";
     private static final String APP_OPEN_COUNT = "appOpenCount";
+    private static final String REVIEW_DONE = "reviewDone";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,7 +121,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         };
-        checkAppOpenCount();
+        if (!sharedPref.getBoolean(REVIEW_DONE, false))
+            checkAppOpenCount();
         setupRecyclerView();
     }
 
@@ -154,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.show();
+        final SharedPreferences shared = context.getSharedPreferences(SHARED_PREF,MODE_PRIVATE);
         dialog.findViewById(R.id.ll_review_liked_it).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -164,6 +167,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
                         Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                 context.startActivity(goToMarket);
+                shared.edit().putBoolean(REVIEW_DONE,true).apply();
             }
         });
         dialog.findViewById(R.id.ll_review_hated_it).setOnClickListener(new View.OnClickListener() {
@@ -172,12 +176,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 dialog.dismiss();
                 context.startActivity(new Intent(Intent.ACTION_VIEW,
                         Uri.parse(FEEDBACK_URL)));
+                shared.edit().putBoolean(REVIEW_DONE,true).apply();
             }
         });
         dialog.findViewById(R.id.ib_review_dismiss).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
+                shared.edit().putInt(APP_OPEN_COUNT, 0).apply();
             }
         });
     }
