@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.BitmapFactory;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
@@ -229,6 +231,7 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
             Intent intent = new Intent(context, WebViewActivity.class);
             intent.putExtra("url",url);
             intent.putExtra("readNode",readNode);
+            Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             PendingIntent pendingIntent = PendingIntent.getActivity(context, (int)System.currentTimeMillis(),intent, PendingIntent.FLAG_UPDATE_CURRENT);
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(context);
@@ -241,11 +244,13 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
                     .setSmallIcon(R.mipmap.ic_launcher_round)
                     .setColor(context.getResources().getColor(R.color.colorPrimary))
                     .setContentIntent(pendingIntent)
-                    .setDefaults(Notification.DEFAULT_ALL)
+                    .setDefaults(NotificationCompat.DEFAULT_ALL)
                     .setOngoing(true)
+                    .setSound(soundUri)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setPriority(NotificationCompat.PRIORITY_HIGH);
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.notify(0,mBuilder.build());
+            manager.notify(101,mBuilder.build());
         }
     }
 }
