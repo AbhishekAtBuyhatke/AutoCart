@@ -1,7 +1,6 @@
 package com.buyhatke.autocart;
 
 import android.app.AlarmManager;
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -196,7 +195,7 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
         @Override
         public void onReceive(Context context, Intent intent) {
             String url = intent.getStringExtra("url");
-            if (TextUtils.isEmpty(url)){
+            if (TextUtils.isEmpty(url)){ //30 second to sale
                 String code = intent.getStringExtra("itemId");
                 SQLiteDatabase db = context.openOrCreateDatabase("SaleItem.db", Context.MODE_PRIVATE, null);
                 Cursor cursor = db.rawQuery("select name from itemlist where id = '"+code+"'",null);
@@ -205,23 +204,23 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
                 if (!TextUtils.isEmpty(code)){
                     db.execSQL("delete from itemlist where id = '"+code+"'");
                 }
-                if (WebViewActivity.webView != null) {
+                if (WebViewActivity.webView != null) { //applyClick if webview open
                     WebViewActivity.applyClick();
                     Toast.makeText(context, "Auto-Click script enabled!", Toast.LENGTH_LONG).show();
                     AutoCart.sendUpdateToServer(SCRIPT_ENABLED, itemName);
                 } else {
                     AutoCart.sendUpdateToServer(SCRIPT_ENABLED, "App Not Open");
                 }
-            } else {
+            } else { //send notification
                 String msg = intent.getStringExtra("msg");
-                if (intent.getBooleanExtra("reopen", false)){
+                if (intent.getBooleanExtra("reopen", false)){ //3-minute to sale
                     if (WebViewActivity.webView == null){
                         sendNotification(msg, context, url, true);
                     } else {
                         Toast.makeText(context, "3 minutes remaining. Opening product page.", Toast.LENGTH_SHORT).show();
                         WebViewActivity.loadAndRead(url);
                     }
-                } else {
+                } else { //10-minute to sale
                     sendNotification(msg, context, url, false);
                 }
             }
