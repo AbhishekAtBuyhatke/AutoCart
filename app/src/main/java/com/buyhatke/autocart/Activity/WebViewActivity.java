@@ -8,9 +8,11 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
@@ -41,7 +43,7 @@ public class WebViewActivity extends AppCompatActivity {
     private static final String FLIPKART_URL = "www.flipkart";
     private static String currUrl;
     private static final String AMAZON_TEST_URL = "https://www.amazon.in/gp/goldbox/";
-
+    private static final String FLIPKART_TEST_URL = "https://www.flipkart.com/mi-a1-black-64-gb/p/itmexnsrtzhbbneg?pid=MOBEX9WXUSZVYHET";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +56,7 @@ public class WebViewActivity extends AppCompatActivity {
 
         webView = (WebView) findViewById(R.id.webview);
         webView.setWebViewClient(new MyWebClient());
+        //webView.setInitialScale(getScale());
         webView.getSettings().setLoadsImagesAutomatically(true);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
@@ -71,7 +74,7 @@ public class WebViewActivity extends AppCompatActivity {
         String url = getIntent().getStringExtra("url");
         readNode = getIntent().getBooleanExtra("readNode",false);
         webView.loadUrl(url);
-        //webView.loadUrl(AMAZON_TEST_URL);
+        //webView.loadUrl(FLIPKART_TEST_URL);
     }
 
     @Override
@@ -179,7 +182,7 @@ public class WebViewActivity extends AppCompatActivity {
 
     public static void applyClick(){
         if (currUrl.contains(AMAZON_URL)) applyAmazonClick();
-        else if (currUrl.contains(FLIPKART_URL)) applyFlipkartClick();
+        else if (currUrl.contains(FLIPKART_URL) && currUrl.contains("?pid")) applyFlipkartClick();
         else if (currUrl.contains(MI_URL)) applyMiClick();
     }
 
@@ -193,7 +196,87 @@ public class WebViewActivity extends AppCompatActivity {
     }
 
     private static void applyFlipkartClick(){
+        webView.loadUrl("javascript: " +
+                "function post(path, params, method) {" +
+                "    localStorage.bookingStarted = 1;" +
+                "    localStorage.bookingTime = parseInt(Date.now()/1000);" +
+                "    method = method || 'post'; " +
+                "    var form = document.createElement('form');" +
+                "    form.setAttribute('method', method);" +
+                "    form.setAttribute('action', path);" +
+                "" +
+                "    for(var key in params) {" +
+                "        if(params.hasOwnProperty(key)) {" +
+                "            var hiddenField = document.createElement('input');" +
+                "            hiddenField.setAttribute('type', 'hidden');" +
+                "            hiddenField.setAttribute('name', key);" +
+                "            hiddenField.setAttribute('value', params[key]);" +
+                "" +
+                "            form.appendChild(hiddenField);" +
+                "         }" +
+                "    }" +
+                "" +
+                "    document.body.appendChild(form);" +
+                "    form.submit();" +
+                "    " +
+                "}" +
+                "" +
+                "function addToCart(){" +
+                "   someClick = setInterval(function(){" +
+                "    if (document.querySelectorAll('button').length > 1 &&" +
+                "        document.querySelectorAll('button')[2].innerText.toLowerCase().includes('buy now')){" +
+                "        var data = {};" +
+                "        data['domain'] = 'physical';" +
+                "        data['eids'] = '"+getFlipkartEID()+"';" +
+                "        data['otracker'] = 'nmenu_sub_Appliances_0_Fully Automatic Top Load'; " +
+                "        post('/checkout/init', data, 'post');" +
+                "        clearInterval(someClick);" +
+                "    }" +
+                "  },200);" +
+                "}" +
+                "addToCart();");
+    }
 
+    private static String getFlipkartEID() {
+        String pid = getFlipkartPID();
+        switch(pid){
+            case "MOBEZWXESCPGF3GZ":
+                return "LSTMOBEZWXESCPGF3GZ7OIFQS";
+
+            case "MOBEZWXENJA6PKFM":
+                return "LSTMOBEZWXENJA6PKFMHVLIX8";
+
+            case "MOBEZWXEYHCFFPHD":
+                return "LSTMOBEZWXEYHCFFPHDM5PWPL";
+
+            case "MOBEZWXEGZQPBFXH":
+                return "LSTMOBEZWXEGZQPBFXHMVZ0OA";
+
+            case "MOBEQ98TWG8X4HH3":
+                return "LSTMOBEQ98TWG8X4HH30D3CZW";
+
+            case "MOBEX9WXZCZHWXUZ":
+                return "LSTMOBEX9WXZCZHWXUZELHO8V";
+
+            case "MOBEX9WXUSZVYHET":
+                return "LSTMOBEX9WXUSZVYHETFSTZ7W";
+
+            case "MOBEWV2NK5KU2D6N":
+                return "LSTMOBEWV2NK5KU2D6N5OGPPD";
+
+            case "MOBEWV2NZXYJFFHA":
+                return "LSTMOBEWV2NZXYJFFHAXDO6VD";
+
+            default :
+                return "";
+        }
+    }
+
+    private static String getFlipkartPID() {
+        if (currUrl.contains("?pid")){
+            int startIndex = currUrl.indexOf("?pid=") + 5;
+            return currUrl.substring(startIndex);
+        } else return "";
     }
 
     private static void applyMiClick(){
@@ -253,6 +336,14 @@ public class WebViewActivity extends AppCompatActivity {
         Tracker tracker = AutoCart.getInstance().getDefaultTracker();
         tracker.setScreenName("WebViewActivity");
         tracker.send(new HitBuilders.ScreenViewBuilder().build());
+    }
+
+    private int getScale(){
+        Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+        int width = display.getWidth();
+        Double val = new Double(width)/new Double(360);
+        val = val * 100d;
+        return val.intValue();
     }
 
 }
