@@ -33,9 +33,14 @@ public class WebViewActivity extends AppCompatActivity {
     private ProgressBar pb;
     private static boolean readNode;
     private List<String> variansts = new ArrayList<>();
-    private static int clickID = 18;
+    private static int clickID = 0;
     private static final String newUA= "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.107 Safari/537.36";
     private boolean reviewDialogDone = false;
+    private static final String MI_URL = "www.mi.com";
+    private static final String AMAZON_URL = "www.amazon.in";
+    private static final String FLIPKART_URL = "www.flipkart";
+    private static String currUrl;
+    private static final String AMAZON_TEST_URL = "https://www.amazon.in/gp/goldbox/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +71,7 @@ public class WebViewActivity extends AppCompatActivity {
         String url = getIntent().getStringExtra("url");
         readNode = getIntent().getBooleanExtra("readNode",false);
         webView.loadUrl(url);
-        //webView.loadUrl("https://www.amazon.in/gp/goldbox/");
+        //webView.loadUrl(AMAZON_TEST_URL);
     }
 
     @Override
@@ -84,8 +89,8 @@ public class WebViewActivity extends AppCompatActivity {
     }
 
     public static void loadAndRead(String url) {
-        readNode = true;
         webView.loadUrl(url);
+        readNode = true;
     }
 
     public class MyInterface{
@@ -124,7 +129,7 @@ public class WebViewActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 clickID = which;
-               webView.post(new Runnable() {
+                webView.post(new Runnable() {
                     @Override
                     public void run() {
                         applyClick();
@@ -147,10 +152,9 @@ public class WebViewActivity extends AppCompatActivity {
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
+            currUrl = url;
             pb.setVisibility(View.VISIBLE);
-            if (url.contains("www.amazon.in")){
-                applyClick();
-            }
+            applyClick();
         }
 
         @Override
@@ -166,11 +170,17 @@ public class WebViewActivity extends AppCompatActivity {
                         if (!url.contains("signin"))
                             readVariants();
                     }
-                },10*000);
-            } else if (url.contains("www.amazon.in")){
+                },5*1000);
+            } else {
                 applyClick();
             }
         }
+    }
+
+    public static void applyClick(){
+        if (currUrl.contains(AMAZON_URL)) applyAmazonClick();
+        else if (currUrl.contains(FLIPKART_URL)) applyFlipkartClick();
+        else if (currUrl.contains(MI_URL)) applyMiClick();
     }
 
     private void readVariants() {
@@ -182,8 +192,15 @@ public class WebViewActivity extends AppCompatActivity {
                 "window.MyTag.addItem('')");
     }
 
-    public static void applyClick(){
+    private static void applyFlipkartClick(){
 
+    }
+
+    private static void applyMiClick(){
+
+    }
+
+    private static void applyAmazonClick(){
         webView.loadUrl("javascript: var clickID = '"+clickID+"';" +
                 "function addToCart(){" +
                 "   someClick = setInterval(function(){" +
@@ -210,7 +227,7 @@ public class WebViewActivity extends AppCompatActivity {
                 "                   window.MyTag.addItem('Reload');" +
                 "                   window.location.reload();" +
                 "               }" +
-                "           },5000);" +
+                "           },10*1000);" +
                 "   }" +
                 "}" +
                 "addToCart();");
