@@ -196,11 +196,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     JSONArray jsonArray = new JSONArray(response);
                     Gson gson = new Gson();
                     SaleItem[] saleItems = gson.fromJson(jsonArray.getString(0),SaleItem[].class);
-                    rvMi.setAdapter(new SaleAdapter(saleItems, MainActivity.this, false));
+                    rvMi.setAdapter(new SaleAdapter(saleItems, MainActivity.this, SaleAdapter.SITE_MI));
                     saleItems = gson.fromJson(jsonArray.getString(1), SaleItem[].class);
-                    rvFlipkart.setAdapter(new SaleAdapter(saleItems, MainActivity.this, false));
+                    rvFlipkart.setAdapter(new SaleAdapter(saleItems, MainActivity.this, SaleAdapter.SITE_FLIPKART));
                     saleItems = gson.fromJson(jsonArray.getString(2), SaleItem[].class);
-                    rvAmazon.setAdapter(new SaleAdapter(saleItems, MainActivity.this, true));
+                    rvAmazon.setAdapter(new SaleAdapter(saleItems, MainActivity.this, SaleAdapter.SITE_AMAZON));
                     if (!sharedPref.getBoolean(IS_REGISTERED, false)) {
                         registerApp();
                     }
