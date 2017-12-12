@@ -39,16 +39,19 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
     private SaleItem[] saleItems;
     private Context context;
     private SQLiteDatabase db;
-    private boolean isAmazon;
     private static final String SCRIPT_ENABLED = "ScriptEnabled";
     private static final String ALERT_SET = "AlertSet";
     private static final String ALERT_UNSET = "AlertUnSet";
+    private String SITE;
+    public static final String SITE_AMAZON = "amazon";
+    public static final String SITE_FLIPKART = "flipkart";
+    public static final String SITE_MI = "mi";
 
 
-    public SaleAdapter(SaleItem[] saleItems, Context context, boolean isAmazon){
+    public SaleAdapter(SaleItem[] saleItems, Context context, String SITE){
         this.saleItems = saleItems;
         this.context = context;
-        this.isAmazon = isAmazon;
+        this.SITE = SITE;
         db = context.openOrCreateDatabase("SaleItem.db", Context.MODE_PRIVATE, null);
         db.execSQL("create table if not exists itemlist(" +
                 "id varchar(10) PRIMARY KEY," +
@@ -65,10 +68,6 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
     public void onBindViewHolder(final SaleAdapter.ViewHolder holder, int position) {
         final SaleItem item = saleItems[position];
         holder.tv_item_name.setText(item.getTitle());
-        if (!isAmazon) {
-            holder.switch_item.setVisibility(View.INVISIBLE);
-            holder.tv_item_time_details.setVisibility(View.GONE);
-        }
         Cursor cursor = db.rawQuery("select name from itemlist where id = '"+item.getCode()+"'",null);
         if (cursor.getCount()>0)
             holder.switch_item.setChecked(true);
@@ -205,7 +204,7 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
                     db.execSQL("delete from itemlist where id = '"+code+"'");
                 }
                 if (WebViewActivity.webView != null) { //applyClick if webview open
-                    WebViewActivity.applyClick();
+                    WebViewActivity.applyClick(context);
                     Toast.makeText(context, "Auto-Click script enabled!", Toast.LENGTH_LONG).show();
                     AutoCart.sendUpdateToServer(SCRIPT_ENABLED, itemName);
                 } else {
