@@ -9,6 +9,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.buyhatke.autocart.Activity.MainActivity;
+import com.buyhatke.autocart.Activity.WebViewActivity;
 import com.buyhatke.autocart.Constants;
 import com.buyhatke.autocart.Utils.NotificationUtils;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -55,10 +56,9 @@ public class FCMService extends FirebaseMessagingService{
 
             String title = data.getString("title");
             String message = data.getString("message");
-            boolean isBackground = data.getBoolean("is_background");
             String imageUrl = data.getString("image");
             String timestamp = data.getString("timestamp");
-            JSONObject payload = data.getJSONObject("payload");
+            String intentUrl = data.getString("url");
 
             if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
                 // app is in foreground, broadcast the push message
@@ -70,8 +70,8 @@ public class FCMService extends FirebaseMessagingService{
 
             } else {
                 // app is in background, show the notification in notification tray
-                Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
-                resultIntent.putExtra("message", message);
+                Intent resultIntent = new Intent(getApplicationContext(), WebViewActivity.class);
+                resultIntent.putExtra("url",intentUrl);
 
                 // check for image attachment
                 if (TextUtils.isEmpty(imageUrl)) {
