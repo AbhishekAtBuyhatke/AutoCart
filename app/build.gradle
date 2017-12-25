@@ -19,6 +19,17 @@ android {
     }
 }
 
+repositories {
+    maven { url "https://jitpack.io" }
+    maven {
+        url "https://buyhatke26.bintray.com/sdkv26"
+        credentials {
+            username 'sdjversion26'
+            password 'a1636aba63f468803a566819284eb0a3f396620a'
+        }
+    }
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -33,6 +44,9 @@ dependencies {
     compile 'com.google.android.gms:play-services-analytics:11.0.4'
     compile 'com.google.firebase:firebase-core:11.0.4'
     compile 'com.google.firebase:firebase-messaging:11.0.4'
+    compile 'com.buyhatke.assistant:assistant-sdk:5.0.0'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
+    implementation 'me.relex:circleindicator:1.2.2@aar'
     testCompile 'junit:junit:4.12'
 }
 
