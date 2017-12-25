@@ -15,6 +15,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
+import com.buyhatke.assistant.Buyhatke;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
@@ -37,6 +38,7 @@ public class AutoCart extends Application {
     public void onCreate() {
         super.onCreate();
         instance = this;
+        Buyhatke.init(getApplicationContext());
     }
 
     public static AutoCart getInstance(){
