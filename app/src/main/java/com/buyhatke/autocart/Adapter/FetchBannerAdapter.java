@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import com.buyhatke.autocart.Activity.WebViewActivity;
+import com.buyhatke.autocart.AutoCart;
 import com.buyhatke.autocart.R;
 import com.squareup.picasso.Picasso;
 
@@ -89,6 +89,7 @@ public class FetchBannerAdapter extends PagerAdapter {
                             Intent intent = new Intent(Intent.ACTION_VIEW,
                                     Uri.parse(link));
                             context.startActivity(intent);
+                            AutoCart.sendUpdateToServer("Banner Clicked", link);
                         }
 
                     }
