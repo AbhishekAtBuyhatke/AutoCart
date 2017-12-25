@@ -1,4 +1,4 @@
-package com.buyhatke.autocart;
+package com.buyhatke.autocart.Adapter;
 
 import android.app.AlarmManager;
 import android.app.NotificationManager;
@@ -25,6 +25,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.buyhatke.autocart.Activity.WebViewActivity;
+import com.buyhatke.autocart.AutoCart;
+import com.buyhatke.autocart.R;
+import com.buyhatke.autocart.SaleItem;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -69,6 +72,12 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
         final SaleItem item = saleItems[position];
         holder.tv_item_name.setText(item.getTitle());
         Cursor cursor = db.rawQuery("select name from itemlist where id = '"+item.getCode()+"'",null);
+
+        if (SITE.equals(SITE_MI)){
+            holder.tv_item_time_details.setVisibility(View.GONE);
+            holder.switch_item.setVisibility(View.GONE);
+        }
+
         if (cursor.getCount()>0)
             holder.switch_item.setChecked(true);
         cursor.close();
