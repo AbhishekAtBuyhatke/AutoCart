@@ -3,6 +3,7 @@ package com.buyhatke.autocart.Service;
 import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -15,6 +16,7 @@ import com.buyhatke.autocart.Utils.NotificationUtils;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -28,8 +30,6 @@ public class FCMService extends FirebaseMessagingService{
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Log.d(TAG, "From : " + remoteMessage.getFrom());
-        if (remoteMessage == null)
-            return;
 
         // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null){
@@ -41,7 +41,7 @@ public class FCMService extends FirebaseMessagingService{
         if (remoteMessage.getData().size() > 0){
             Log.d(TAG, "Data Payload : " + remoteMessage.getData().toString());
             try {
-                JSONObject json = new JSONObject(remoteMessage.getData().toString());
+                JSONObject json = new JSONObject(remoteMessage.getData());
                 handleDataMessage(json);
             } catch (Exception e){
                 e.printStackTrace();
@@ -49,18 +49,33 @@ public class FCMService extends FirebaseMessagingService{
         }
     }
 
-    private void handleDataMessage(JSONObject json) {
-        Log.e(TAG, "push json: " + json.toString());
+    private void handleDataMessage(JSONObject data) {
         try {
-            JSONObject data = json.getJSONObject("data");
-
+            String imageUrl = "", timestamp = "", intentUrl = "";
+            Intent resultIntent = null;
+            Log.e(TAG, "push json: " + data.toString());
             String title = data.getString("title");
             String message = data.getString("message");
-            String imageUrl = data.getString("image");
-            String timestamp = data.getString("timestamp");
-            String intentUrl = data.getString("url");
+            try {
+                imageUrl = data.getString("image");
+            } catch (Exception e){}
+            try {
+                intentUrl = data.getString("url");
+                resultIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(intentUrl));
+            } catch (Exception e){
+                resultIntent = new Intent(getApplicationContext(), MainActivity.class);
+            }
 
-            if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
+
+            // check for image attachment
+            if (TextUtils.isEmpty(imageUrl)) {
+                showNotificationMessage(getApplicationContext(), title, message, timestamp, resultIntent);
+            } else {
+                // image is present, show notification with image
+                showNotificationMessageWithBigImage(getApplicationContext(), title, message, timestamp, resultIntent, imageUrl);
+            }
+
+            /*if (!NotificationUtils.isAppIsInBackground(getApplicationContext())) {
                 // app is in foreground, broadcast the push message
                 Intent pushNotification = new Intent(Constants.PUSH_NOTIFICATION);
                 pushNotification.putExtra("message", message);
@@ -80,7 +95,7 @@ public class FCMService extends FirebaseMessagingService{
                     // image is present, show notification with image
                     showNotificationMessageWithBigImage(getApplicationContext(), title, message, timestamp, resultIntent, imageUrl);
                 }
-            }
+            }*/
         } catch (Exception e){
 
         }
@@ -94,7 +109,6 @@ public class FCMService extends FirebaseMessagingService{
 
     private void showNotificationMessage(Context context, String title, String message, String timeStamp, Intent intent) {
         notificationUtils = new NotificationUtils(context);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         notificationUtils.showNotificationMessage(title, message, timeStamp, intent);
     }
 

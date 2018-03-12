@@ -48,7 +48,6 @@ public class NotificationUtils {
         if (TextUtils.isEmpty(message))
             return;
         final int icon = R.mipmap.ic_launcher;
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         final PendingIntent pendingIntent = PendingIntent.getActivity(context,0,intent, PendingIntent.FLAG_CANCEL_CURRENT);
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
         if (!TextUtils.isEmpty(imageUrl)){
@@ -71,10 +70,10 @@ public class NotificationUtils {
         notification = builder.setSmallIcon(icon).setTicker(title).setWhen(0)
                 .setAutoCancel(true)
                 .setContentTitle(title)
+                .setTicker(title)
                 .setContentIntent(pendingIntent)
                 .setDefaults(Notification.DEFAULT_ALL)
                 .setStyle(inboxStyle)
-                .setWhen(getTimeMilliSec(timeStamp))
                 .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setColor(context.getResources().getColor(R.color.colorPrimary))
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), icon))
@@ -85,31 +84,15 @@ public class NotificationUtils {
         manager.notify(Constants.NOTIFICATION_ID, notification);
     }
 
-    public static long getTimeMilliSec(String timeStamp) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        try {
-            Date date = format.parse(timeStamp);
-            return date.getTime();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
     private void showBigNotification(Bitmap bitmap, NotificationCompat.Builder builder, int icon, String title, String message, String timeStamp, PendingIntent pendingIntent) {
 
-        NotificationCompat.BigPictureStyle bigPictureStyle = new NotificationCompat.BigPictureStyle();
-        bigPictureStyle.setBigContentTitle(title);
-        bigPictureStyle.setSummaryText(Html.fromHtml(message).toString());
-        bigPictureStyle.bigLargeIcon(bitmap);
-        Notification notification;
-        notification = builder.setSmallIcon(icon).setTicker(title).setWhen(0)
+        Notification notification = builder.setSmallIcon(icon).setTicker(title).setWhen(0)
                 .setAutoCancel(true)
+                .setTicker(title)
                 .setContentTitle(title)
                 .setContentIntent(pendingIntent)
                 .setDefaults(Notification.DEFAULT_ALL)
-                .setStyle(bigPictureStyle)
-                .setWhen(getTimeMilliSec(timeStamp))
+                .setStyle(new NotificationCompat.BigPictureStyle().bigPicture(bitmap))
                 .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setColor(context.getResources().getColor(R.color.colorPrimary))
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), icon))
@@ -156,8 +139,7 @@ public class NotificationUtils {
             connection.setDoInput(true);
             connection.connect();
             InputStream input = connection.getInputStream();
-            Bitmap bitmap = BitmapFactory.decodeStream(input);
-            return bitmap;
+            return BitmapFactory.decodeStream(input);
         } catch (IOException e){
             e.printStackTrace();
             return null;

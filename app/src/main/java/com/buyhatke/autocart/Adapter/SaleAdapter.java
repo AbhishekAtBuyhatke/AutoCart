@@ -73,11 +73,6 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
         holder.tv_item_name.setText(item.getTitle());
         Cursor cursor = db.rawQuery("select name from itemlist where id = '"+item.getCode()+"'",null);
 
-        if (SITE.equals(SITE_MI)){
-            holder.tv_item_time_details.setVisibility(View.GONE);
-            holder.switch_item.setVisibility(View.GONE);
-        }
-
         if (cursor.getCount()>0)
             holder.switch_item.setChecked(true);
         cursor.close();

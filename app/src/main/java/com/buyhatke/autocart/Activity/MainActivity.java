@@ -1,5 +1,6 @@
 package com.buyhatke.autocart.Activity;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -9,8 +10,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
@@ -37,7 +40,9 @@ import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Cache;
 import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.NetworkResponse;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -59,6 +64,9 @@ import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 import java.lang.reflect.Field;
 
@@ -68,7 +76,7 @@ import static com.buyhatke.autocart.Constants.FEEDBACK_URL;
 import static com.buyhatke.autocart.Constants.SALE_URL;
 import static com.buyhatke.autocart.Constants.SHARED_PREF;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private RequestQueue queue;
     private RecyclerView rvAmazon, rvFlipkart, rvMi;
@@ -80,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String REQUEST_TAG = "downloadSaleData";
     private BroadcastReceiver broadcastReceiver;
     private SharedPreferences sharedPref;
-    private static final String IS_REGISTERED = "isRegisteredAgain";
+    private static final String IS_REGISTERED = "callRegisterAPI";
     private static final String REGISTER_TAG = "Registration";
     private static final String APP_OPEN_COUNT = "appOpenCount";
     private static final String APP_OPEN_COUNT_SDK = "appOpenCountSDK";
@@ -92,6 +100,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Handler handler;
     private Runnable runnable;
     private CircleIndicator circleIndicator;
+    private String currentVersion;
+    private static final String urlOfApp = "https://play.google.com/store/apps/details?id=com.buyhatke.autocart&hl=en";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,11 +157,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         };
 
+        compareAppVersion();
+        setupRecyclerView();
+        fetchBanner();
+        if (!sharedPref.getBoolean(REVIEW_DONE, false))
+            checkAppOpenCount();
+        if (!sharedPref.getBoolean(SDK_NOTIFICATION, false))
+            checkAppOpenCountSDK();
+        Log.d("AppToken", ""+FirebaseInstanceId.getInstance().getToken());
+    }
+
+    private void compareAppVersion() {
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(this.getPackageName(), 0);
+            currentVersion = pInfo.versionName;
+            new GetCurrentVersion().execute();
+        } catch (PackageManager.NameNotFoundException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
     }
 
     public void fetchBanner() {
-        String appId = sharedPref.getString("appId","");
-        String appAuth = sharedPref.getString("appAuth","");
+        String appId = sharedPref.getString("appId", "");
+        String appAuth = sharedPref.getString("appAuth", "");
         String uri = Uri.parse("http://buyhatke.com/application/sendOfferNew2.php")
                 .buildUpon().appendQueryParameter("app_id", appId)
                 .appendQueryParameter("app_auth", appAuth).build().toString();
@@ -168,11 +197,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             circleIndicator.setViewPager(pager);
                             adapter.registerDataSetObserver(circleIndicator.getDataSetObserver());
 
-                            try{
+                            try {
                                 Field mScroller = ViewPager.class.getDeclaredField("mScroller");
                                 mScroller.setAccessible(true);
                                 mScroller.set(pager, new CustomScroller(pager.getContext(), BANNER_TRANSITION_DELAY));
-                            } catch (Exception e){
+                            } catch (Exception e) {
                             }
 
                             handler = new Handler(Looper.getMainLooper());
@@ -180,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             runnable = new Runnable() {
                                 public void run() {
                                     int current = pager.getCurrentItem();
-                                    if(current >= num - 1)
+                                    if (current >= num - 1)
                                         current = -1;
                                     pager.setCurrentItem(++current, true);
                                 }
@@ -215,20 +244,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void checkAppOpenCount() {
-        int count = sharedPref.getInt(APP_OPEN_COUNT,0);
-        if (count == 5){
+        int count = sharedPref.getInt(APP_OPEN_COUNT, 0);
+        if (count == 5) {
             showReviewDialog(this);
-        } else if (count < 5){
+        } else if (count < 5) {
             count++;
             sharedPref.edit().putInt(APP_OPEN_COUNT, count).apply();
         }
     }
 
     private void checkAppOpenCountSDK() {
-        int count = sharedPref.getInt(APP_OPEN_COUNT_SDK,0);
-        if (count == 13){
+        int count = sharedPref.getInt(APP_OPEN_COUNT_SDK, 0);
+        if (count == 13) {
             showSDKDialog();
-        } else if (count < 13){
+        } else if (count < 13) {
             count++;
             sharedPref.edit().putInt(APP_OPEN_COUNT_SDK, count).apply();
         }
@@ -246,7 +275,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         prepareItems();
     }
 
-    public static void showReviewDialog(final Context context){
+    public static void showReviewDialog(final Context context) {
         final Dialog dialog = new Dialog(context, R.style.DialogSlideAnim);
         dialog.setContentView(R.layout.review_popup);
         dialog.setCancelable(false);
@@ -254,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         dialog.show();
-        final SharedPreferences shared = context.getSharedPreferences(SHARED_PREF,MODE_PRIVATE);
+        final SharedPreferences shared = context.getSharedPreferences(SHARED_PREF, MODE_PRIVATE);
         dialog.findViewById(R.id.ll_review_liked_it).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -265,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Intent.FLAG_ACTIVITY_NEW_DOCUMENT |
                         Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                 context.startActivity(goToMarket);
-                shared.edit().putBoolean(REVIEW_DONE,true).apply();
+                shared.edit().putBoolean(REVIEW_DONE, true).apply();
             }
         });
         dialog.findViewById(R.id.ll_review_hated_it).setOnClickListener(new View.OnClickListener() {
@@ -274,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 dialog.dismiss();
                 context.startActivity(new Intent(Intent.ACTION_VIEW,
                         Uri.parse(FEEDBACK_URL)));
-                shared.edit().putBoolean(REVIEW_DONE,true).apply();
+                shared.edit().putBoolean(REVIEW_DONE, true).apply();
             }
         });
         dialog.findViewById(R.id.ib_review_dismiss).setOnClickListener(new View.OnClickListener() {
@@ -293,14 +322,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 try {
                     JSONArray jsonArray = new JSONArray(response);
                     Gson gson = new Gson();
-                    SaleItem[] saleItems = gson.fromJson(jsonArray.getString(0),SaleItem[].class);
+                    SaleItem[] saleItems = gson.fromJson(jsonArray.getString(0), SaleItem[].class);
                     rvMi.setAdapter(new SaleAdapter(saleItems, MainActivity.this, SaleAdapter.SITE_MI));
                     saleItems = gson.fromJson(jsonArray.getString(1), SaleItem[].class);
                     rvFlipkart.setAdapter(new SaleAdapter(saleItems, MainActivity.this, SaleAdapter.SITE_FLIPKART));
                     saleItems = gson.fromJson(jsonArray.getString(2), SaleItem[].class);
                     rvAmazon.setAdapter(new SaleAdapter(saleItems, MainActivity.this, SaleAdapter.SITE_AMAZON));
                     if (!sharedPref.getBoolean(IS_REGISTERED, false)) {
-                        getDeviceId();
+                        checkEMEIPermission();
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -313,10 +342,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onErrorResponse(VolleyError error) {
                 pd.dismiss();
                 Toast.makeText(MainActivity.this, "Something went wrong! Make sure you have an active Internet connection.", Toast.LENGTH_SHORT).show();
-                prepareItems();
+                //prepareItems();
             }
-        });
-        request.setShouldCache(false);
+        }){
+            @Override
+            protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                Response<String> resp = super.parseNetworkResponse(response);
+                if (!resp.isSuccess()) return resp;
+                long now = System.currentTimeMillis();
+                Cache.Entry entry = resp.cacheEntry;
+                if (entry == null){
+                    entry = new Cache.Entry();
+                    entry.data = response.data;
+                    entry.responseHeaders = response.headers;
+                }
+                entry.ttl = now +  6 * 60 * 60 * 1000; //6 hours
+                return Response.success(resp.result, entry);
+            }
+        };
         request.setTag(REQUEST_TAG);
         queue.add(request);
     }
@@ -357,13 +400,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 v.getId() == R.id.tv_amazon_sale_info) {
             intent.putExtra("url", "https://compare.buyhatke.com/xiaomi-flash-sale/redmi-note-mi/?utm_source=ext");
             startActivity(intent);
-        }
-        else if (v.getId() == R.id.tv_amazon_sale){
+        } else if (v.getId() == R.id.tv_amazon_sale) {
             intent.putExtra("url", "http://www.amazon.in");
             startActivity(intent);
-        } else if (v == tvInstructionText){
-            AutoCart.sendUpdateToServer("InstructionsClicked","");
-            if (instrOpen){
+        } else if (v == tvInstructionText) {
+            AutoCart.sendUpdateToServer("InstructionsClicked", "");
+            if (instrOpen) {
                 instrOpen = false;
                 llInstructionContainer.setVisibility(View.GONE);
                 ivInstruction.setImageResource(R.drawable.ic_keyboard_arrow_down_black_24px);
@@ -398,12 +440,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // by doing this, the activity will be notified each time a new message arrives
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver,
                 new IntentFilter(Constants.PUSH_NOTIFICATION));
-        setupRecyclerView();
-        fetchBanner();
-        if (!sharedPref.getBoolean(REVIEW_DONE, false))
-            checkAppOpenCount();
-        if (!sharedPref.getBoolean(SDK_NOTIFICATION, false))
-            checkAppOpenCountSDK();
     }
 
     @Override
@@ -420,13 +456,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void checkEMEIPermission() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_PHONE_STATE}, 101);
+        } else registerApp(getDeviceId());
+    }
+
     private String getDeviceId() {
         TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_PHONE_STATE},101);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             return "";
         }
-        else if (telephonyManager.getDeviceId() != null)
+        if (telephonyManager.getDeviceId() != null)
             return telephonyManager.getDeviceId();
         else
             return Settings.Secure.getString(getContentResolver(),
@@ -435,16 +476,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void sendRegisterIdToBackend(final String appId, final String appAuth, final String appToken) {
         final String setTokenUrl = Constants.SET_TOKEN_URL
-                + "&app_token=" + appToken
+                + "&token=" + appToken
                 + "&app_id=" + appId
                 + "&app_auth=" + appAuth;
-        Log.d("Important",setTokenUrl);
+        Log.d(REGISTER_TAG, setTokenUrl);
         StringRequest request = new StringRequest(setTokenUrl, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 Log.d(REGISTER_TAG, response);
                 if (response.equals("1")) {
-                    Log.d(REGISTER_TAG, "Successfully registered app");
+                    Log.d(REGISTER_TAG, "Successfully sent token");
                     sharedPref.edit().putBoolean(IS_REGISTERED, true).apply();
                 }
                 else {
@@ -466,22 +507,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void registerApp(final String idPhone) {
         final String appToken = FirebaseInstanceId.getInstance().getToken();
         String url = Uri.parse(Constants.REGISTER_URL).buildUpon()
-                .appendQueryParameter("source", "autocart_app")
+                .appendQueryParameter("source", "playstore")
                 .appendQueryParameter("imei", idPhone).toString();
-
+        Log.d(REGISTER_TAG, "Register API called. Emei: "+idPhone);
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(url, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
                 try {
                     String appId = response.getJSONObject(0).getString("app_id");
                     String appAuth = response.getJSONObject(0).getString("app_auth");
-                    Log.d(REGISTER_TAG, appId + " " + appAuth);
                     sendRegisterIdToBackend(appId, appAuth, appToken);
                     SharedPreferences.Editor editor = sharedPref.edit();
                     editor.putString("appId",appId);
                     editor.putString("appAuth",appAuth);
                     editor.putString("appToken",appToken);
                     editor.apply();
+                    Log.d(REGISTER_TAG, "Registered Successfully AppId: "+appId + " AppAuth: "+ appAuth+ " Token: "+ appToken);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Log.d(REGISTER_TAG, "App registration failed. Trying again.");
@@ -490,7 +531,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                registerApp(idPhone);
+                Log.d(REGISTER_TAG, error.getMessage());
             }
         });
 
@@ -556,6 +597,58 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(DialogInterface dialog, int which) {
                 builder.show().dismiss();
                 AutoCart.sendUpdateToServer("SDK", "Never");
+            }
+        });
+        builder.show();
+    }
+
+    private class GetCurrentVersion extends AsyncTask<Void, Void, Void> {
+
+        private String latestVersion;
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            try {
+                Document doc = Jsoup.connect(urlOfApp).get();
+                latestVersion = doc.getElementsByAttributeValue
+                        ("itemprop", "softwareVersion").first().text();
+
+            } catch (Exception e) {
+
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if (!TextUtils.isEmpty(currentVersion) && !TextUtils.isEmpty(latestVersion)) {
+                Log.d("AppVersion", "Current : " + currentVersion + " Latest : " + latestVersion);
+                if (currentVersion.compareTo(latestVersion) < 0) {
+                    if (!isFinishing()) {
+                        showUpdateDialog();
+                    }
+                }
+            }
+            super.onPostExecute(aVoid);
+        }
+    }
+
+    private void showUpdateDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("New update");
+        builder.setMessage("We have changed since we last met. Let's get the updates.");
+        builder.setPositiveButton("Update", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse
+                        ("market://details?id=com.buyhatke.autocart")));
+                dialog.dismiss();
+            }
+        });
+        builder.setNegativeButton("Later", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
             }
         });
         builder.show();

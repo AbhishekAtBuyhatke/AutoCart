@@ -7,8 +7,8 @@ android {
         applicationId "com.buyhatke.autocart"
         minSdkVersion 19
         targetSdkVersion 25
-        versionCode 9
-        versionName "1.7"
+        versionCode 14
+        versionName "2.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -44,6 +44,7 @@ dependencies {
     compile 'com.google.android.gms:play-services-analytics:11.0.4'
     compile 'com.google.firebase:firebase-core:11.0.4'
     compile 'com.google.firebase:firebase-messaging:11.0.4'
+    implementation 'org.jsoup:jsoup:1.10.1'
     compile 'com.buyhatke.assistant:assistant-sdk:5.0.0'
     implementation 'com.github.PhilJay:MPAndroidChart:v2.2.3'
     implementation 'me.relex:circleindicator:1.2.2@aar'

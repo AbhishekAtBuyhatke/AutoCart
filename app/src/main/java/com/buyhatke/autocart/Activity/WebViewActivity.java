@@ -10,6 +10,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -101,7 +102,11 @@ public class WebViewActivity extends AppCompatActivity {
     }
 
     private void showMiDialog(String currUrl) {
-        if (currUrl.toLowerCase().contains("redmi5a") || currUrl.toLowerCase().contains("redmi-5a") || currUrl.toLowerCase().contains("rdemi-5a"))
+        if (currUrl.toLowerCase().contains("redminote5pro") || currUrl.toLowerCase().contains("redmi-note5-pro") || currUrl.toLowerCase().contains("redmi-note-5-pro"))
+            showVariantDialog("redminote5pro");
+        else if (currUrl.toLowerCase().contains("redminote5") || currUrl.toLowerCase().contains("redmi-note5") || currUrl.toLowerCase().contains("redmi-note-5"))
+            showVariantDialog("redminote5");
+        else if (currUrl.toLowerCase().contains("redmi5a") || currUrl.toLowerCase().contains("redmi-5a") || currUrl.toLowerCase().contains("rdemi-5a"))
             showVariantDialog("redmi5a");
         else if (currUrl.toLowerCase().contains("redmiyilite") || currUrl.toLowerCase().contains("redmi-y1-lite") || currUrl.toLowerCase().contains("rdemi-y1"))
             showVariantDialog("redmiy1lite");
@@ -109,6 +114,8 @@ public class WebViewActivity extends AppCompatActivity {
             showVariantDialog("redmi4");
         else if (currUrl.toLowerCase().contains("redmiy1") || currUrl.toLowerCase().contains("redmi-y1"))
             showVariantDialog("redmiy1");
+        else if (currUrl.toLowerCase().contains("tv") || currUrl.toLowerCase().contains("led"))
+            showVariantDialog("tv");
     }
 
     private void showVariantDialog(String variant) {
@@ -135,6 +142,24 @@ public class WebViewActivity extends AppCompatActivity {
                 variantList.add("4GB+64GB Dark Grey"); //4174400032
                 variantList.add("4GB+64GB Gold"); //4174400031
                 flagVariant = 3;
+                break;
+            case "redminote5pro" :
+                variantList.add("4G+64GB Black"); //4180500017
+                variantList.add("4G+64GB Gold"); //4180500019
+                variantList.add("6G+64G Black"); //4180500018
+                variantList.add("6G+64G Gold"); //4180500020
+                flagVariant = 4;
+                break;
+            case "redminote5" :
+                variantList.add("3G+32GB Black"); //4180500026
+                variantList.add("3G+32GB Gold"); //4180500028
+                variantList.add("4G+64G Black"); //4180500025
+                variantList.add("4G+64G Gold"); //4180500027
+                flagVariant = 5;
+                break;
+            case "tv" :
+                variantList.add("138.8 CM Black"); //4174700006
+                flagVariant = 6;
                 break;
             default:
                 flagVariant = 0;
@@ -167,7 +192,21 @@ public class WebViewActivity extends AppCompatActivity {
                         else if (which == 2) mi_pid = "4174400032";
                         else if (which == 3) mi_pid = "4174400031";
                         break;
-
+                    case 4 :
+                        if (which == 0) mi_pid = "4180500017";
+                        else if (which == 1) mi_pid = "4180500019";
+                        else if (which == 2) mi_pid = "4180500018";
+                        else if (which == 3) mi_pid = "4180500020";
+                        break;
+                    case 5 :
+                        if (which == 0) mi_pid = "4180500026";
+                        else if (which == 1) mi_pid = "4180500028";
+                        else if (which == 2) mi_pid = "4180500025";
+                        else if (which == 3) mi_pid = "4180500027";
+                        break;
+                    case 6 :
+                        mi_pid = "4174700006";
+                        break;
                     default:
                         mi_pid = "";
                 }
@@ -293,8 +332,9 @@ public class WebViewActivity extends AppCompatActivity {
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
             currUrl = url;
+            Log.d("CurrUrl: ", currUrl);
             pb.setVisibility(View.VISIBLE);
-            if (!url.contains(FLIPKART_URL)) autoApplyClick(WebViewActivity.this);
+            if (url.contains(AMAZON_URL)) autoApplyClick(WebViewActivity.this);
         }
 
         @Override
@@ -425,6 +465,24 @@ public class WebViewActivity extends AppCompatActivity {
             case "MOBEWV2NZXYJFFHA":
                 return "LSTMOBEWV2NZXYJFFHAXDO6VD";
 
+            case "MOBF28FTQPHUPX83":
+                return "LSTMOBF28FTQPHUPX83H7IIOZ";
+
+            case "MOBF28FTHZYYGXFY":
+                return "LSTMOBF28FTHZYYGXFYRE2WTC";
+
+            case "MOBF28FTXZYZ6UYJ":
+                return "LSTMOBF28FTXZYZ6UYJSQJJLU";
+
+            case "MOBF28FTGXFYNXX2":
+                return "LSTMOBF28FTGXFYNXX2RKBHLZ";
+
+            case "MOBF28FTHEP6NDYB":
+                return "LSTMOBF28FTHEP6NDYBDVDLFX";
+
+            case "MOBF28FTQYA9BFW5":
+                return "LSTMOBF28FTQYA9BFW5XJRGOI";
+
             default:
                 return "";
         }
@@ -458,12 +516,35 @@ public class WebViewActivity extends AppCompatActivity {
         //webView.loadUrl(buf.toString());
     } */
 
-    private static void applyMiClick(){
+    private static void applyMiClick() {
+        webView.loadUrl("javascript: var prodIdSelected = '"+mi_pid+"';" +
+                "function buyNow(){" +
+                "   buyT = setInterval(function(){" +
+                "       if (document.getElementsByClassName('btn J_proBtn btn-primary') != null && document.getElementsByClassName('btn J_proBtn btn-primary').length > 0){" +
+                "           document.getElementsByClassName('btn J_proBtn btn-primary')[0].click();" +
+                "           clearInterval(buyT);" +
+                "       }" +
+                "   },200);" +
+                "}" +
+                "function buyNowTimeout(){" +
+                "  buyT2 = setTimeout(function(){" +
+                "      if(prodIdSelected!=\"\" && $(\"[data-goods-id='\"+prodIdSelected+\"'] .btn-buy\") != null && $(\"[data-goods-id='\"+prodIdSelected+\"'] .btn-buy\").length > 0){" +
+                "            $(\"[data-goods-id='\"+prodIdSelected+\"'] .btn-buy\")[0].click();" +
+                "            clearInterval(buyT2);" +
+                "      }" +
+                "  }, 200);" +
+                "}" +
+                "buyNow();" +
+                "buyNowTimeout();"
+        );
+    }
+
+    /*private static void applyMiClick(){
         webView.loadUrl("javascript : var prodIdSelected = '"+mi_pid+"';" +
                 "function buyNowTimeout(){" +
                 "  buyT = setInterval(function(){" +
-                "      if(prodIdSelected!='' && $('[data-goods-id=\"'+prodIdSelected+'\"].btn-buy').length>0){" +
-                "            $('[data-goods-id=\"'+prodIdSelected+'\"].btn-buy')[0].click();" +
+                "      if(prodIdSelected!='' && $('[data-goods-id=\"'+prodIdSelected+'\"] .btn-buy').length>0){" +
+                "            $('[data-goods-id=\"'+prodIdSelected+'\"] .btn-buy')[0].click();" +
                 "            window.MyTag.addItem('SuccessMi');" +
                 "            clearInterval(buyT);" +
                 "      }" +
@@ -471,14 +552,14 @@ public class WebViewActivity extends AppCompatActivity {
                 "}" +
                 "function buyNow(){" +
                 "  buyNowTimeout();" +
-                "  if (document.getElementsByClassName('btn-buy') != null && document.getElementsByClassName('btn-buy').length >= 0)" +
-                "       document.getElementsByClassName('btn-buy')[0].click();" +
+                "  if (document.getElementsByClassName('btn J_proBtn btn-primary') != null && document.getElementsByClassName('btn J_proBtn btn-primary').length >= 0)" +
+                "       document.getElementsByClassName('btn J_proBtn btn-primary')[0].click();" +
                 "  setTimeout(function(){buyNow();},1000);" +
-                "  if(prodIdSelected != '' && $('[data-goods-id=\"'+prodIdSelected+'\"].btn-buy').length>0){" +
+                "  if(prodIdSelected != '' && $('[data-goods-id=\"'+prodIdSelected+'\"] .btn-buy').length>0){" +
                 "      setTimeout(function(){" +
                 "        buyNow();" +
                 "      },1000);" +
-                "      $('[data-goods-id=\"'+prodIdSelected+'\"].btn-buy')[0].click();" +
+                "      $('[data-goods-id=\"'+prodIdSelected+'\"] .btn-buy').click();" +
                 "  }" +
                 "  else {" +
                 "     setTimeout(function(){buyNow();},100);" +
@@ -486,7 +567,7 @@ public class WebViewActivity extends AppCompatActivity {
                 "}" +
                 "" +
                 "buyNow();");
-    }
+    }*/
 
     private static void applyAmazonClick(){
         webView.loadUrl("javascript: var clickID = '"+clickID+"';" +
