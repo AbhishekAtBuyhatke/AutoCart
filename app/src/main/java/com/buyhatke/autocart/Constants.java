@@ -17,6 +17,7 @@ public class Constants {
     public static final int NOTIFICATION_ID_BIG_IMAGE = 101;
 
     public static final String SHARED_PREF = "autobuy_sharedPref";
+    public static final String REFERRER= "referrer";
 
     final public static String REGISTER_URL = "https://compare.buyhatke.com/application/registerApp.php?platform=autocart";
     final public static String SET_TOKEN_URL = "https://compare.buyhatke.com/application/setToken.php?platform=autocart";

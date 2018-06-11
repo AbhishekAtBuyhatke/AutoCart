@@ -63,9 +63,6 @@ public class NotificationUtils {
     }
 
     private void showSmallNotification(NotificationCompat.Builder builder, int icon, String title, String message, String timeStamp, PendingIntent pendingIntent) {
-        NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-        inboxStyle.addLine(message);
-
         Notification notification;
         notification = builder.setSmallIcon(icon).setTicker(title).setWhen(0)
                 .setAutoCancel(true)
@@ -73,7 +70,7 @@ public class NotificationUtils {
                 .setTicker(title)
                 .setContentIntent(pendingIntent)
                 .setDefaults(Notification.DEFAULT_ALL)
-                .setStyle(inboxStyle)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                 .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setColor(context.getResources().getColor(R.color.colorPrimary))
                 .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), icon))

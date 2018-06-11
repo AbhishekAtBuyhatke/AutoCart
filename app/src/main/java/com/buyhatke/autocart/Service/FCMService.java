@@ -61,7 +61,8 @@ public class FCMService extends FirebaseMessagingService{
             } catch (Exception e){}
             try {
                 intentUrl = data.getString("url");
-                resultIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(intentUrl));
+                if (TextUtils.isEmpty(intentUrl)) resultIntent = new Intent(getApplicationContext(), MainActivity.class);
+                else resultIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(intentUrl));
             } catch (Exception e){
                 resultIntent = new Intent(getApplicationContext(), MainActivity.class);
             }

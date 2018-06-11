@@ -73,6 +73,7 @@ import java.lang.reflect.Field;
 import me.relex.circleindicator.CircleIndicator;
 
 import static com.buyhatke.autocart.Constants.FEEDBACK_URL;
+import static com.buyhatke.autocart.Constants.REFERRER;
 import static com.buyhatke.autocart.Constants.SALE_URL;
 import static com.buyhatke.autocart.Constants.SHARED_PREF;
 
@@ -507,7 +508,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void registerApp(final String idPhone) {
         final String appToken = FirebaseInstanceId.getInstance().getToken();
         String url = Uri.parse(Constants.REGISTER_URL).buildUpon()
-                .appendQueryParameter("source", "playstore")
+                .appendQueryParameter("source", sharedPref.getString(REFERRER, "organic"))
                 .appendQueryParameter("imei", idPhone).toString();
         Log.d(REGISTER_TAG, "Register API called. Emei: "+idPhone);
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(url, new Response.Listener<JSONArray>() {

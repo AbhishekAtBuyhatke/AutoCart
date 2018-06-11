@@ -483,6 +483,12 @@ public class WebViewActivity extends AppCompatActivity {
             case "MOBF28FTQYA9BFW5":
                 return "LSTMOBF28FTQYA9BFW5XJRGOI";
 
+            case "MOBF28FTKDWY5EHE":
+                return "LSTMOBF28FTKDWY5EHEVZCTQW";
+
+            case "MOBF28FTVG9GMYQM":
+                return "LSTMOBF28FTVG9GMYQMGNLVLZ";
+
             default:
                 return "";
         }
