@@ -55,9 +55,9 @@ public class FetchBannerAdapter extends PagerAdapter {
         try {
 
             final String imgUrl;
-             String title;
-             final String link;
-             final int isProduct;
+            String title;
+            final String link;
+            final int isProduct;
             imgUrl = fetchArray.getJSONObject(position).getString(
                     "image");
             link = fetchArray.getJSONObject(position)
@@ -72,10 +72,8 @@ public class FetchBannerAdapter extends PagerAdapter {
             if (title.equals("none")) {
 //                                    //do not delete useful for debugging
                 imgBanner.setVisibility(View.GONE);
-            }
-
-            else{
-                Picasso.with(context)
+            } else {
+                Picasso.get()
                         .load(imgUrl)
                         .placeholder(
                                 R.drawable.banner_loader)
@@ -96,8 +94,7 @@ public class FetchBannerAdapter extends PagerAdapter {
                 });
             }
             ((ViewPager) container).addView(itemView);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
 
         }
 
