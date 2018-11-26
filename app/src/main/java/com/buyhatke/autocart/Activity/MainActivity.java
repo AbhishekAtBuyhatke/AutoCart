@@ -14,6 +14,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
@@ -22,7 +23,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.telephony.TelephonyManager;
@@ -49,13 +49,12 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.buyhatke.assistant.Buyhatke;
+import com.buyhatke.autocart.Adapter.FetchBannerAdapter;
+import com.buyhatke.autocart.Adapter.SaleAdapter;
 import com.buyhatke.autocart.AutoCart;
 import com.buyhatke.autocart.Constants;
 import com.buyhatke.autocart.R;
-import com.buyhatke.autocart.Adapter.SaleAdapter;
 import com.buyhatke.autocart.SaleItem;
-import com.buyhatke.autocart.Adapter.FetchBannerAdapter;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -64,7 +63,6 @@ import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -163,8 +161,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fetchBanner();
         if (!sharedPref.getBoolean(REVIEW_DONE, false))
             checkAppOpenCount();
-        if (!sharedPref.getBoolean(SDK_NOTIFICATION, false))
-            checkAppOpenCountSDK();
+//        if (!sharedPref.getBoolean(SDK_NOTIFICATION, false))
+//            checkAppOpenCountSDK();
         Log.d("AppToken", ""+FirebaseInstanceId.getInstance().getToken());
     }
 
@@ -257,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void checkAppOpenCountSDK() {
         int count = sharedPref.getInt(APP_OPEN_COUNT_SDK, 0);
         if (count == 13) {
-            showSDKDialog();
+            //showSDKDialog();
         } else if (count < 13) {
             count++;
             sharedPref.edit().putInt(APP_OPEN_COUNT_SDK, count).apply();
@@ -453,7 +451,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } else {
                 registerApp("");
             }
-            showSDKDialog();
+            //showSDKDialog();
         }
     }
 
@@ -570,38 +568,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void showSDKDialog(){
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enable Shopping Assistant?");
-        builder.setMessage("Let Buyhatke Shopping Assistant give suggestions and help save more whenever you surf on your favourite shopping app?");
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (!Buyhatke.isAccessibilityServiceRunning(MainActivity.this))
-                    Buyhatke.setAccessibilityNotification(MainActivity.this);
-                builder.show().dismiss();
-                Toast.makeText(MainActivity.this, "Click on the notification for further steps!", Toast.LENGTH_LONG).show();
-                sharedPref.edit().putBoolean(SDK_NOTIFICATION, true).apply();
-                AutoCart.sendUpdateToServer("SDK", "Yes");
-            }
-        });
-        builder.setNegativeButton("Later", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                builder.show().dismiss();
-                sharedPref.edit().putInt(APP_OPEN_COUNT_SDK, 0).apply();
-                AutoCart.sendUpdateToServer("SDK","Later");
-            }
-        });
-        builder.setNeutralButton("Never", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                builder.show().dismiss();
-                AutoCart.sendUpdateToServer("SDK", "Never");
-            }
-        });
-        builder.show();
-    }
+//    private void showSDKDialog(){
+//        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        builder.setTitle("Enable Shopping Assistant?");
+//        builder.setMessage("Let Buyhatke Shopping Assistant give suggestions and help save more whenever you surf on your favourite shopping app?");
+//        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                if (!Buyhatke.isAccessibilityServiceRunning(MainActivity.this))
+//                    Buyhatke.setAccessibilityNotification(MainActivity.this);
+//                builder.show().dismiss();
+//                Toast.makeText(MainActivity.this, "Click on the notification for further steps!", Toast.LENGTH_LONG).show();
+//                sharedPref.edit().putBoolean(SDK_NOTIFICATION, true).apply();
+//                AutoCart.sendUpdateToServer("SDK", "Yes");
+//            }
+//        });
+//        builder.setNegativeButton("Later", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                builder.show().dismiss();
+//                sharedPref.edit().putInt(APP_OPEN_COUNT_SDK, 0).apply();
+//                AutoCart.sendUpdateToServer("SDK","Later");
+//            }
+//        });
+//        builder.setNeutralButton("Never", new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                builder.show().dismiss();
+//                AutoCart.sendUpdateToServer("SDK", "Never");
+//            }
+//        });
+//        builder.show();
+//    }
 
     private class GetCurrentVersion extends AsyncTask<Void, Void, Void> {
 
