@@ -1,7 +1,9 @@
-package com.buyhatke.autocart;
+package com.buyhatke.autocart.Models;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+
+import java.util.ArrayList;
 
 /**
  * Created by Abhishek on 26-Aug-17.
@@ -24,6 +26,9 @@ public class SaleItem {
     @SerializedName("imp")
     @Expose
     private String imp;
+    @SerializedName("all_variants")
+    @Expose
+    private String all_variants;
 
     public String getTitle() {
         return title;
@@ -63,6 +68,10 @@ public class SaleItem {
 
     public void setImp(String imp) {
         this.imp = imp;
+    }
+
+    public String getAll_variants() {
+        return all_variants;
     }
 }
 

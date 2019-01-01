@@ -53,8 +53,9 @@ import com.buyhatke.autocart.Adapter.FetchBannerAdapter;
 import com.buyhatke.autocart.Adapter.SaleAdapter;
 import com.buyhatke.autocart.AutoCart;
 import com.buyhatke.autocart.Constants;
+import com.buyhatke.autocart.Models.Variants;
 import com.buyhatke.autocart.R;
-import com.buyhatke.autocart.SaleItem;
+import com.buyhatke.autocart.Models.SaleItem;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -72,7 +73,7 @@ import me.relex.circleindicator.CircleIndicator;
 
 import static com.buyhatke.autocart.Constants.FEEDBACK_URL;
 import static com.buyhatke.autocart.Constants.REFERRER;
-import static com.buyhatke.autocart.Constants.SALE_URL;
+import static com.buyhatke.autocart.Constants.SALE_URL_NEW;
 import static com.buyhatke.autocart.Constants.SHARED_PREF;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -101,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private CircleIndicator circleIndicator;
     private String currentVersion;
     private static final String urlOfApp = "https://play.google.com/store/apps/details?id=com.buyhatke.autocart&hl=en";
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -163,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             checkAppOpenCount();
 //        if (!sharedPref.getBoolean(SDK_NOTIFICATION, false))
 //            checkAppOpenCountSDK();
-        Log.d("AppToken", ""+FirebaseInstanceId.getInstance().getToken());
+        Log.d("AppToken", "" + FirebaseInstanceId.getInstance().getToken());
     }
 
     private void compareAppVersion() {
@@ -315,18 +317,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void prepareItems() {
-        StringRequest request = new StringRequest(SALE_URL, new Response.Listener<String>() {
+        StringRequest request = new StringRequest(SALE_URL_NEW, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 try {
                     JSONArray jsonArray = new JSONArray(response);
                     Gson gson = new Gson();
                     SaleItem[] saleItems = gson.fromJson(jsonArray.getString(0), SaleItem[].class);
-                    rvMi.setAdapter(new SaleAdapter(saleItems, MainActivity.this, SaleAdapter.SITE_MI));
+                    String[] allVariants = new String[saleItems.length];
+                    //allVariants[i] = gson.fromJson(String.valueOf(new JSONArray(saleItems[i].getAll_variants())), Variants[].class);
+                    for (int i = 0; i < saleItems.length; i++)
+                        allVariants[i] = saleItems[i].getAll_variants();
+                    if (saleItems.length != 0)
+                        rvMi.setAdapter(new SaleAdapter(saleItems, allVariants, MainActivity.this, SaleAdapter.SITE_MI));
+                    else
+                        findViewById(R.id.cvMi).setVisibility(View.GONE);
                     saleItems = gson.fromJson(jsonArray.getString(1), SaleItem[].class);
-                    rvFlipkart.setAdapter(new SaleAdapter(saleItems, MainActivity.this, SaleAdapter.SITE_FLIPKART));
+                    allVariants = new String[saleItems.length];
+                    for (int i = 0; i < saleItems.length; i++)
+                        allVariants[i] = saleItems[i].getAll_variants();
+                    if (saleItems.length != 0)
+                        rvFlipkart.setAdapter(new SaleAdapter(saleItems, allVariants, MainActivity.this, SaleAdapter.SITE_FLIPKART));
+                    else findViewById(R.id.cvFlipkart).setVisibility(View.GONE);
                     saleItems = gson.fromJson(jsonArray.getString(2), SaleItem[].class);
-                    rvAmazon.setAdapter(new SaleAdapter(saleItems, MainActivity.this, SaleAdapter.SITE_AMAZON));
+                    allVariants = new String[saleItems.length];
+                    for (int i = 0; i < saleItems.length; i++)
+                        allVariants[i] = saleItems[i].getAll_variants();
+                    if (saleItems.length != 0)
+                        rvAmazon.setAdapter(new SaleAdapter(saleItems, allVariants, MainActivity.this, SaleAdapter.SITE_AMAZON));
+                    else findViewById(R.id.cvAmazon).setVisibility(View.GONE);
                     if (!sharedPref.getBoolean(IS_REGISTERED, false)) {
                         checkEMEIPermission();
                     }
@@ -343,19 +362,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(MainActivity.this, "Something went wrong! Make sure you have an active Internet connection.", Toast.LENGTH_SHORT).show();
                 //prepareItems();
             }
-        }){
+        }) {
             @Override
             protected Response<String> parseNetworkResponse(NetworkResponse response) {
                 Response<String> resp = super.parseNetworkResponse(response);
                 if (!resp.isSuccess()) return resp;
                 long now = System.currentTimeMillis();
                 Cache.Entry entry = resp.cacheEntry;
-                if (entry == null){
+                if (entry == null) {
                     entry = new Cache.Entry();
                     entry.data = response.data;
                     entry.responseHeaders = response.headers;
                 }
-                entry.ttl = now +  6 * 60 * 60 * 1000; //6 hours
+                entry.ttl = now + 6 * 60 * 60 * 1000; //6 hours
                 return Response.success(resp.result, entry);
             }
         };
@@ -486,8 +505,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (response.equals("1")) {
                     Log.d(REGISTER_TAG, "Successfully sent token");
                     sharedPref.edit().putBoolean(IS_REGISTERED, true).apply();
-                }
-                else {
+                } else {
                     Log.d(REGISTER_TAG, "Invalid Response Recieved. Trying again");
                     sendRegisterIdToBackend(appId, appAuth, appToken);
                 }
@@ -508,7 +526,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String url = Uri.parse(Constants.REGISTER_URL).buildUpon()
                 .appendQueryParameter("source", sharedPref.getString(REFERRER, "organic"))
                 .appendQueryParameter("imei", idPhone).toString();
-        Log.d(REGISTER_TAG, "Register API called. Emei: "+idPhone);
+        Log.d(REGISTER_TAG, "Register API called. Emei: " + idPhone);
         JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(url, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
@@ -517,11 +535,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     String appAuth = response.getJSONObject(0).getString("app_auth");
                     sendRegisterIdToBackend(appId, appAuth, appToken);
                     SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString("appId",appId);
-                    editor.putString("appAuth",appAuth);
-                    editor.putString("appToken",appToken);
+                    editor.putString("appId", appId);
+                    editor.putString("appAuth", appAuth);
+                    editor.putString("appToken", appToken);
                     editor.apply();
-                    Log.d(REGISTER_TAG, "Registered Successfully AppId: "+appId + " AppAuth: "+ appAuth+ " Token: "+ appToken);
+                    Log.d(REGISTER_TAG, "Registered Successfully AppId: " + appId + " AppAuth: " + appAuth + " Token: " + appToken);
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Log.d(REGISTER_TAG, "App registration failed. Trying again.");

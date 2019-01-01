@@ -26,8 +26,9 @@ import android.widget.Toast;
 
 import com.buyhatke.autocart.Activity.WebViewActivity;
 import com.buyhatke.autocart.AutoCart;
+import com.buyhatke.autocart.Models.SaleItem;
+import com.buyhatke.autocart.Models.Variants;
 import com.buyhatke.autocart.R;
-import com.buyhatke.autocart.SaleItem;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -40,6 +41,7 @@ import java.util.Date;
 public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
 
     private SaleItem[] saleItems;
+    private String[] allVariants;
     private Context context;
     private SQLiteDatabase db;
     private static final String SCRIPT_ENABLED = "ScriptEnabled";
@@ -51,8 +53,9 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
     public static final String SITE_MI = "mi";
 
 
-    public SaleAdapter(SaleItem[] saleItems, Context context, String SITE){
+    public SaleAdapter(SaleItem[] saleItems, String[] allVariants, Context context, String SITE) {
         this.saleItems = saleItems;
+        this.allVariants = allVariants;
         this.context = context;
         this.SITE = SITE;
         db = context.openOrCreateDatabase("SaleItem.db", Context.MODE_PRIVATE, null);
@@ -70,10 +73,11 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(final SaleAdapter.ViewHolder holder, int position) {
         final SaleItem item = saleItems[position];
+        final String variants = allVariants[position];
         holder.tv_item_name.setText(item.getTitle());
-        Cursor cursor = db.rawQuery("select name from itemlist where id = '"+item.getCode()+"'",null);
+        Cursor cursor = db.rawQuery("select name from itemlist where id = '" + item.getCode() + "'", null);
 
-        if (cursor.getCount()>0)
+        if (cursor.getCount() > 0)
             holder.switch_item.setChecked(true);
         cursor.close();
 
@@ -83,7 +87,7 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
         if (telTime < currTime) {
             holder.switch_item.setChecked(false);
             holder.switch_item.setEnabled(false);
-            db.execSQL("delete from itemlist where id = '"+item.getCode()+"'");
+            db.execSQL("delete from itemlist where id = '" + item.getCode() + "'");
         }
 
         Date date = new Date(telTime);
@@ -95,16 +99,16 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 final int exact_time = item.getTime();
-                if (isChecked){
+                if (isChecked) {
                     if ((exact_time * 1000L) < System.currentTimeMillis()) {
                         Toast.makeText(context, "Sale time not updated on server! Please check back later.", Toast.LENGTH_SHORT).show();
                         holder.switch_item.setChecked(false);
                     } else {
                         AutoCart.sendUpdateToServer(ALERT_SET, item.getTitle());
                         ContentValues cv = new ContentValues();
-                        cv.put("id",item.getCode());
-                        cv.put("name",item.getTitle());
-                        db.replace("itemlist",null,cv);
+                        cv.put("id", item.getCode());
+                        cv.put("name", item.getTitle());
+                        db.replace("itemlist", null, cv);
                         String msg = "10 minutes remaining for flash sale. Make sure you have an active account for the required website and you are successfully logged in.";
                         setNotification(context, msg, exact_time - (10 * 60), item.getUrl());
                         checkAndOpenUrl(context, exact_time - (3 * 60), item.getUrl());
@@ -113,7 +117,7 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
                     }
                 } else {
                     AutoCart.sendUpdateToServer(ALERT_UNSET, item.getTitle());
-                    db.execSQL("delete from itemlist where id = '"+item.getCode()+"'");
+                    db.execSQL("delete from itemlist where id = '" + item.getCode() + "'");
                     cancelAlarm(exact_time - (10 * 60));
                     cancelAlarm(exact_time - (3 * 60));
                     cancelAlarm(exact_time - 30);
@@ -125,7 +129,8 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, WebViewActivity.class);
-                intent.putExtra("url",item.getUrl());
+                intent.putExtra("url", item.getUrl());
+                intent.putExtra("variants", variants);
                 context.startActivity(intent);
             }
         });
@@ -144,11 +149,11 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
         long epochInMili = epoch * 1000L;
         calendar.setTimeInMillis(epochInMili);
         Intent intent = new Intent(context, MyReceiver.class);
-        intent.putExtra("url",url);
-        intent.putExtra("msg","3 minutes remaining. Click here to land on booking page.");
-        intent.putExtra("reopen",true);
+        intent.putExtra("url", url);
+        intent.putExtra("msg", "3 minutes remaining. Click here to land on booking page.");
+        intent.putExtra("reopen", true);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, epoch, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis() , pendingIntent);
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
     }
 
     public static void clickOnBookBtn(Context context, int epoch, String code) {
@@ -159,7 +164,7 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
         Intent intent = new Intent(context, MyReceiver.class);
         intent.putExtra("itemId", code);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, epoch, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis() , pendingIntent);
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
     }
 
     @Override
@@ -167,7 +172,7 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
         return saleItems.length;
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder{
+    class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView tv_item_name, tv_item_time_details;
         Switch switch_item;
@@ -181,16 +186,16 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
     }
 
     public static void setNotification(Context context, String msg, int epoch, String url) {
-        Log.d("Timestamp",""+epoch);
+        Log.d("Timestamp", "" + epoch);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Calendar calendar = Calendar.getInstance();
         long epochInMili = epoch * 1000L;
         calendar.setTimeInMillis(epochInMili);
         Intent intent = new Intent(context, MyReceiver.class);
-        intent.putExtra("url",url);
-        intent.putExtra("msg",msg);
+        intent.putExtra("url", url);
+        intent.putExtra("msg", msg);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, epoch, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        alarmManager.setExact(AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis() , pendingIntent);
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
     }
 
     public static class MyReceiver extends BroadcastReceiver {
@@ -198,14 +203,14 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
         @Override
         public void onReceive(Context context, Intent intent) {
             String url = intent.getStringExtra("url");
-            if (TextUtils.isEmpty(url)){ //30 second to sale
+            if (TextUtils.isEmpty(url)) { //30 second to sale
                 String code = intent.getStringExtra("itemId");
                 SQLiteDatabase db = context.openOrCreateDatabase("SaleItem.db", Context.MODE_PRIVATE, null);
-                Cursor cursor = db.rawQuery("select name from itemlist where id = '"+code+"'",null);
+                Cursor cursor = db.rawQuery("select name from itemlist where id = '" + code + "'", null);
                 cursor.moveToLast();
                 String itemName = cursor.getString(0);
-                if (!TextUtils.isEmpty(code)){
-                    db.execSQL("delete from itemlist where id = '"+code+"'");
+                if (!TextUtils.isEmpty(code)) {
+                    db.execSQL("delete from itemlist where id = '" + code + "'");
                 }
                 if (WebViewActivity.webView != null) { //applyClick if webview open
                     WebViewActivity.applyClick(context);
@@ -216,8 +221,8 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
                 }
             } else { //send notification
                 String msg = intent.getStringExtra("msg");
-                if (intent.getBooleanExtra("reopen", false)){ //3-minute to sale
-                    if (WebViewActivity.webView == null){
+                if (intent.getBooleanExtra("reopen", false)) { //3-minute to sale
+                    if (WebViewActivity.webView == null) {
                         sendNotification(msg, context, url, true);
                     } else {
                         Toast.makeText(context, "3 minutes remaining. Opening product page.", Toast.LENGTH_SHORT).show();
@@ -231,10 +236,10 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
 
         private void sendNotification(String msg, Context context, String url, boolean readNode) {
             Intent intent = new Intent(context, WebViewActivity.class);
-            intent.putExtra("url",url);
-            intent.putExtra("readNode",readNode);
+            intent.putExtra("url", url);
+            intent.putExtra("readNode", readNode);
             Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, (int)System.currentTimeMillis(),intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, (int) System.currentTimeMillis(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
             NotificationCompat.Builder mBuilder =
                     new NotificationCompat.Builder(context);
             mBuilder
@@ -252,7 +257,7 @@ public class SaleAdapter extends RecyclerView.Adapter<SaleAdapter.ViewHolder> {
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setPriority(NotificationCompat.PRIORITY_HIGH);
             NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            manager.notify(101,mBuilder.build());
+            manager.notify(101, mBuilder.build());
         }
     }
 }

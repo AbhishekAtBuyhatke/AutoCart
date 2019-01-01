@@ -1,8 +1,9 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion '26.0.3'
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.buyhatke.autocart"
         minSdkVersion 19
@@ -28,6 +29,7 @@ repositories {
             password 'a1636aba63f468803a566819284eb0a3f396620a'
         }
     }
+    mavenCentral()
 }
 
 dependencies {
@@ -50,6 +52,7 @@ dependencies {
 //    implementation 'com.github.PhilJay:MPAndroidChart:v2.2.3'
     implementation 'me.relex:circleindicator:1.2.2@aar'
     testCompile 'junit:junit:4.12'
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 apply plugin: 'com.google.gms.google-services'

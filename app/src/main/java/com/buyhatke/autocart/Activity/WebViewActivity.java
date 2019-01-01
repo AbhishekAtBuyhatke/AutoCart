@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -25,9 +24,11 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.buyhatke.autocart.AutoCart;
+import com.buyhatke.autocart.Models.Variants;
 import com.buyhatke.autocart.R;
 import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,7 @@ public class WebViewActivity extends AppCompatActivity {
     private List<String> variansts = new ArrayList<>();
     private List<String> variantList = new ArrayList<>();
     private static int clickID = 0;
-    private static final String newUA= "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.107 Safari/537.36";
+    private static final String newUA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.107 Safari/537.36";
     private boolean reviewDialogDone = false;
     private static final String MI_URL = "www.mi.com";
     private static final String AMAZON_URL = "www.amazon.in";
@@ -49,6 +50,9 @@ public class WebViewActivity extends AppCompatActivity {
     private static final String AMAZON_TEST_URL = "https://www.amazon.in/gp/goldbox/";
     private static final String FLIPKART_TEST_URL = "https://www.flipkart.com/mi-a1-black-64-gb/p/itmexnsrtzhbbneg?pid=MOBEX9WXUSZVYHET";
     private static String mi_pid = "";
+    private String variantsStr;
+    private Variants[] variantsObj;
+    private static final String TAG = "WebViewActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,9 +71,9 @@ public class WebViewActivity extends AppCompatActivity {
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
         webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-        webView.addJavascriptInterface(new MyInterface(),"MyTag");
+        webView.addJavascriptInterface(new MyInterface(), "MyTag");
         webView.getSettings().setUserAgentString(newUA);
-        webView.setWebChromeClient(new WebChromeClient(){
+        webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
                 pb.setProgress(newProgress);
@@ -78,9 +82,11 @@ public class WebViewActivity extends AppCompatActivity {
         webView.getSettings().setBuiltInZoomControls(true);
         webView.getSettings().setDisplayZoomControls(false);
         String url = getIntent().getStringExtra("url");
-        readNode = getIntent().getBooleanExtra("readNode",false);
+        variantsStr = getIntent().getStringExtra("variants");
+        variantsObj = new Gson().fromJson(variantsStr, Variants[].class);
+        readNode = getIntent().getBooleanExtra("readNode", false);
         webView.loadUrl(url);
-        AutoCart.sendUpdateToServer("Url",url);
+        AutoCart.sendUpdateToServer("Url", url);
         //webView.loadUrl(FLIPKART_TEST_URL);
     }
 
@@ -89,134 +95,136 @@ public class WebViewActivity extends AppCompatActivity {
         if (item.getItemId() == android.R.id.home) {
             finish();
             return true;
-        } else if (item.getItemId() == R.id.action_choose){
+        } else if (item.getItemId() == R.id.action_choose) {
             variansts.clear();
             variantList.clear();
             if (currUrl.contains(AMAZON_URL)) readVariants();
             else if (currUrl.contains(FLIPKART_URL)) addToCartFlipkart();
-            else if (currUrl.contains(MI_URL)) showMiDialog(currUrl);
-        } else if (item.getItemId() == R.id.action_refresh){
+            else if (currUrl.contains(MI_URL)) showVariantDialog(variantsObj);
+        } else if (item.getItemId() == R.id.action_refresh) {
             webView.loadUrl("javascript:window.location.reload()");
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void showMiDialog(String currUrl) {
-        if (currUrl.toLowerCase().contains("redminote5pro") || currUrl.toLowerCase().contains("redmi-note5-pro") || currUrl.toLowerCase().contains("redmi-note-5-pro"))
-            showVariantDialog("redminote5pro");
-        else if (currUrl.toLowerCase().contains("redminote5") || currUrl.toLowerCase().contains("redmi-note5") || currUrl.toLowerCase().contains("redmi-note-5"))
-            showVariantDialog("redminote5");
-        else if (currUrl.toLowerCase().contains("redmi5a") || currUrl.toLowerCase().contains("redmi-5a") || currUrl.toLowerCase().contains("rdemi-5a"))
-            showVariantDialog("redmi5a");
-        else if (currUrl.toLowerCase().contains("redmiyilite") || currUrl.toLowerCase().contains("redmi-y1-lite") || currUrl.toLowerCase().contains("rdemi-y1"))
-            showVariantDialog("redmiy1lite");
-        else if (currUrl.toLowerCase().contains("redmi4") || currUrl.toLowerCase().contains("redmi-4"))
-            showVariantDialog("redmi4");
-        else if (currUrl.toLowerCase().contains("redmiy1") || currUrl.toLowerCase().contains("redmi-y1"))
-            showVariantDialog("redmiy1");
-        else if (currUrl.toLowerCase().contains("tv") || currUrl.toLowerCase().contains("led"))
-            showVariantDialog("tv");
-    }
+//    private void showMiDialog(String currUrl) {
+//        if (currUrl.toLowerCase().contains("redminote5pro") || currUrl.toLowerCase().contains("redmi-note5-pro") || currUrl.toLowerCase().contains("redmi-note-5-pro"))
+//            showVariantDialog("redminote5pro");
+//        else if (currUrl.toLowerCase().contains("redminote5") || currUrl.toLowerCase().contains("redmi-note5") || currUrl.toLowerCase().contains("redmi-note-5"))
+//            showVariantDialog("redminote5");
+//        else if (currUrl.toLowerCase().contains("redmi5a") || currUrl.toLowerCase().contains("redmi-5a") || currUrl.toLowerCase().contains("rdemi-5a"))
+//            showVariantDialog("redmi5a");
+//        else if (currUrl.toLowerCase().contains("redmiyilite") || currUrl.toLowerCase().contains("redmi-y1-lite") || currUrl.toLowerCase().contains("rdemi-y1"))
+//            showVariantDialog("redmiy1lite");
+//        else if (currUrl.toLowerCase().contains("redmi4") || currUrl.toLowerCase().contains("redmi-4"))
+//            showVariantDialog("redmi4");
+//        else if (currUrl.toLowerCase().contains("redmiy1") || currUrl.toLowerCase().contains("redmi-y1"))
+//            showVariantDialog("redmiy1");
+//        else if (currUrl.toLowerCase().contains("tv") || currUrl.toLowerCase().contains("led"))
+//            showVariantDialog("tv");
+//    }
 
-    private void showVariantDialog(String variant) {
-        final int flagVariant;
-        switch (variant){
-            case "redmi5a" :
-                variantList.add("2GB+16GB Dark Grey"); //4174600002
-                variantList.add("2GB+16GB Gold"); //4174600001
-                variantList.add("3GB+32GB Dark Grey"); //4174600005
-                variantList.add("3GB+32GB Gold"); //4174600004
-                flagVariant = 0;
-                break;
-            case "redmiy1lite" :
-                variantList.add("2GB+16GB Dark Grey"); //4174400027
-                variantList.add("2GB+16GB Gold"); //4174400025
-                flagVariant = 1;
-                break;
-            case "redmi4" :
-                flagVariant = 2;
-                break;
-            case "redmiy1" :
-                variantList.add("3GB+32GB Dark Grey"); //4174400023
-                variantList.add("3GB+32GB Gold"); //4174400022
-                variantList.add("4GB+64GB Dark Grey"); //4174400032
-                variantList.add("4GB+64GB Gold"); //4174400031
-                flagVariant = 3;
-                break;
-            case "redminote5pro" :
-                variantList.add("4G+64GB Black"); //4180500017
-                variantList.add("4G+64GB Gold"); //4180500019
-                variantList.add("6G+64G Black"); //4180500018
-                variantList.add("6G+64G Gold"); //4180500020
-                flagVariant = 4;
-                break;
-            case "redminote5" :
-                variantList.add("3G+32GB Black"); //4180500026
-                variantList.add("3G+32GB Gold"); //4180500028
-                variantList.add("4G+64G Black"); //4180500025
-                variantList.add("4G+64G Gold"); //4180500027
-                flagVariant = 5;
-                break;
-            case "tv" :
-                variantList.add("138.8 CM Black"); //4174700006
-                flagVariant = 6;
-                break;
-            default:
-                flagVariant = 0;
-        }
+    private void showVariantDialog(final Variants[] localVar) {
+        for (Variants variant : localVar) variantList.add(variant.getSpace() + " " + variant.getColor());
+//        final int flagVariant;
+//        switch (variant) {
+//            case "redmi5a":
+//                variantList.add("2GB+16GB Dark Grey"); //4174600002
+//                variantList.add("2GB+16GB Gold"); //4174600001
+//                variantList.add("3GB+32GB Dark Grey"); //4174600005
+//                variantList.add("3GB+32GB Gold"); //4174600004
+//                flagVariant = 0;
+//                break;
+//            case "redmiy1lite":
+//                variantList.add("2GB+16GB Dark Grey"); //4174400027
+//                variantList.add("2GB+16GB Gold"); //4174400025
+//                flagVariant = 1;
+//                break;
+//            case "redmi4":
+//                flagVariant = 2;
+//                break;
+//            case "redmiy1":
+//                variantList.add("3GB+32GB Dark Grey"); //4174400023
+//                variantList.add("3GB+32GB Gold"); //4174400022
+//                variantList.add("4GB+64GB Dark Grey"); //4174400032
+//                variantList.add("4GB+64GB Gold"); //4174400031
+//                flagVariant = 3;
+//                break;
+//            case "redminote5pro":
+//                variantList.add("4G+64GB Black"); //4180500017
+//                variantList.add("4G+64GB Gold"); //4180500019
+//                variantList.add("6G+64G Black"); //4180500018
+//                variantList.add("6G+64G Gold"); //4180500020
+//                flagVariant = 4;
+//                break;
+//            case "redminote5":
+//                variantList.add("3G+32GB Black"); //4180500026
+//                variantList.add("3G+32GB Gold"); //4180500028
+//                variantList.add("4G+64G Black"); //4180500025
+//                variantList.add("4G+64G Gold"); //4180500027
+//                flagVariant = 5;
+//                break;
+//            case "tv":
+//                variantList.add("138.8 CM Black"); //4174700006
+//                flagVariant = 6;
+//                break;
+//            default:
+//                flagVariant = 0;
+//        }
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Choose Variant");
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, variantList);
         alert.setSingleChoiceItems(adapter, 0, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                switch (flagVariant){
-                    case 0 :
-                        if (which == 0) mi_pid = "4174600002";
-                        else if (which == 1) mi_pid = "4174600001";
-                        else if (which == 2) mi_pid = "4174600005";
-                        else if (which == 3) mi_pid = "4174600004";
-                        break;
-
-                    case 1 :
-                        if (which == 0) mi_pid = "4174400027";
-                        else if (which == 1) mi_pid = "4174400025";
-                        break;
-
-                    case 2 :
-                        break;
-
-                    case 3 :
-                        if (which == 0) mi_pid = "4174400023";
-                        else if (which == 1) mi_pid = "4174400022";
-                        else if (which == 2) mi_pid = "4174400032";
-                        else if (which == 3) mi_pid = "4174400031";
-                        break;
-                    case 4 :
-                        if (which == 0) mi_pid = "4180500017";
-                        else if (which == 1) mi_pid = "4180500019";
-                        else if (which == 2) mi_pid = "4180500018";
-                        else if (which == 3) mi_pid = "4180500020";
-                        break;
-                    case 5 :
-                        if (which == 0) mi_pid = "4180500026";
-                        else if (which == 1) mi_pid = "4180500028";
-                        else if (which == 2) mi_pid = "4180500025";
-                        else if (which == 3) mi_pid = "4180500027";
-                        break;
-                    case 6 :
-                        mi_pid = "4174700006";
-                        break;
-                    default:
-                        mi_pid = "";
-                }
+                mi_pid = localVar[which].getGid();
+//                switch (flagVariant) {
+//                    case 0:
+//                        if (which == 0) mi_pid = "4174600002";
+//                        else if (which == 1) mi_pid = "4174600001";
+//                        else if (which == 2) mi_pid = "4174600005";
+//                        else if (which == 3) mi_pid = "4174600004";
+//                        break;
+//
+//                    case 1:
+//                        if (which == 0) mi_pid = "4174400027";
+//                        else if (which == 1) mi_pid = "4174400025";
+//                        break;
+//
+//                    case 2:
+//                        break;
+//
+//                    case 3:
+//                        if (which == 0) mi_pid = "4174400023";
+//                        else if (which == 1) mi_pid = "4174400022";
+//                        else if (which == 2) mi_pid = "4174400032";
+//                        else if (which == 3) mi_pid = "4174400031";
+//                        break;
+//                    case 4:
+//                        if (which == 0) mi_pid = "4180500017";
+//                        else if (which == 1) mi_pid = "4180500019";
+//                        else if (which == 2) mi_pid = "4180500018";
+//                        else if (which == 3) mi_pid = "4180500020";
+//                        break;
+//                    case 5:
+//                        if (which == 0) mi_pid = "4180500026";
+//                        else if (which == 1) mi_pid = "4180500028";
+//                        else if (which == 2) mi_pid = "4180500025";
+//                        else if (which == 3) mi_pid = "4180500027";
+//                        break;
+//                    case 6:
+//                        mi_pid = "4174700006";
+//                        break;
+//                    default:
+//                        mi_pid = "";
+//                }
                 webView.post(new Runnable() {
                     @Override
                     public void run() {
                         applyMiClick();
                     }
                 });
-                Toast.makeText(WebViewActivity.this, variantList.get(which)+ " selected!", Toast.LENGTH_LONG).show();
+                Toast.makeText(WebViewActivity.this, variantList.get(which) + " selected!", Toast.LENGTH_LONG).show();
                 dialog.dismiss();
             }
         });
@@ -228,44 +236,45 @@ public class WebViewActivity extends AppCompatActivity {
         if (url.contains(AMAZON_URL) || url.contains(MI_URL)) readNode = true;
     }
 
-    public class MyInterface{
+    public class MyInterface {
 
         @JavascriptInterface
-        public void addItem(String name){
+        public void addItem(String name) {
 
-            if (TextUtils.isEmpty(name)){
+            if (TextUtils.isEmpty(name)) {
                 showDialog();
-            } else if (name.equals("Reload")){
-                Snackbar.make(webView, "Hang on. We are working on it!",Snackbar.LENGTH_SHORT).show();
+            } else if (name.equals("Reload")) {
+                Snackbar.make(webView, "Hang on. We are working on it!", Snackbar.LENGTH_SHORT).show();
                 AutoCart.sendUpdateToServer("Reloading", variansts.get(clickID));
-            } else if (name.contains("Success")){
-                if (!reviewDialogDone){
+            } else if (name.contains("Success")) {
+                if (!reviewDialogDone) {
                     if (name.contains("Mi")) AutoCart.sendUpdateToServer("SUCCESS", "MI");
-                    else if (name.contains("Amazon")) AutoCart.sendUpdateToServer("SUCCESS", "Amazon");
+                    else if (name.contains("Amazon"))
+                        AutoCart.sendUpdateToServer("SUCCESS", "Amazon");
                     else AutoCart.sendUpdateToServer("SUCCESS", "Flipkart");
                     new Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             MainActivity.showReviewDialog(WebViewActivity.this);
                         }
-                    },5 * 1000);
+                    }, 5 * 1000);
                     reviewDialogDone = true;
                 }
-            } else if (name.equals("addCartFlipkart")){
-                  webView.post(new Runnable() {
-                      @Override
-                      public void run() {
-                          addToCartFlipkart();
-                      }
-                  });
-            } else if (name.equals("checkForOOSFlipkart")){
-                    webView.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Snackbar.make(webView, "Hang on. We are working on it!",Snackbar.LENGTH_SHORT).show();
-                            checkForOOSFLipkart();
-                        }
-                    });
+            } else if (name.equals("addCartFlipkart")) {
+                webView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        addToCartFlipkart();
+                    }
+                });
+            } else if (name.equals("checkForOOSFlipkart")) {
+                webView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Snackbar.make(webView, "Hang on. We are working on it!", Snackbar.LENGTH_SHORT).show();
+                        checkForOOSFLipkart();
+                    }
+                });
             } else {
                 variansts.add(name.trim());
             }
@@ -278,29 +287,29 @@ public class WebViewActivity extends AppCompatActivity {
             @Override
             public void run() {
                 webView.loadUrl("javascript: " +
-                                "function checkForOOS(){" +
-                                "    if(document.querySelectorAll('._3hgEev').length > 0 && " +
-                                "      (document.querySelectorAll('._3hgEev')[0].innerText.split('Out Of Stock').length>1 || " +
-                                "      document.querySelectorAll('._3hgEev')[0].innerText.split('try again').length>1)){" +
-                                "           setTimeout(function(){" +
-                                "                window.MyTag.addItem('checkOOSFlipkart');" +
-                                "                window.location.reload();" +
-                                "           },3000);" +
-                                "   }" +
-                                "     else {" +
-                                "        setTimeout(function(){" +
-                                "          checkForOOS();" +
-                                "        },1000);" +
-                                "     }" +
-                                "   if (window.location.href.includes('GoToCart'))" +
-                                "       window.MyTag.addItem('SuccessFlipkart');" +
-                                "}" +
-                                "checkForOOS();");
+                        "function checkForOOS(){" +
+                        "    if(document.querySelectorAll('._3hgEev').length > 0 && " +
+                        "      (document.querySelectorAll('._3hgEev')[0].innerText.split('Out Of Stock').length>1 || " +
+                        "      document.querySelectorAll('._3hgEev')[0].innerText.split('try again').length>1)){" +
+                        "           setTimeout(function(){" +
+                        "                window.MyTag.addItem('checkOOSFlipkart');" +
+                        "                window.location.reload();" +
+                        "           },3000);" +
+                        "   }" +
+                        "     else {" +
+                        "        setTimeout(function(){" +
+                        "          checkForOOS();" +
+                        "        },1000);" +
+                        "     }" +
+                        "   if (window.location.href.includes('GoToCart'))" +
+                        "       window.MyTag.addItem('SuccessFlipkart');" +
+                        "}" +
+                        "checkForOOS();");
             }
         });
     }
 
-    private void showDialog(){
+    private void showDialog() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Choose Variant");
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, variansts);
@@ -314,14 +323,14 @@ public class WebViewActivity extends AppCompatActivity {
                         applyAmazonClick();
                     }
                 });
-                Toast.makeText(WebViewActivity.this, variansts.get(which)+ " selected!", Toast.LENGTH_LONG).show();
+                Toast.makeText(WebViewActivity.this, variansts.get(which) + " selected!", Toast.LENGTH_LONG).show();
                 dialog.dismiss();
             }
         });
         alert.show();
     }
 
-    private class MyWebClient extends WebViewClient{
+    private class MyWebClient extends WebViewClient {
 
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -349,18 +358,19 @@ public class WebViewActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if (url.contains(AMAZON_URL) && !url.contains("signin")) readVariants();
-                        else if (url.contains(MI_URL) && !url.contains("Login")) showMiDialog(url);
+                        else if (url.contains(MI_URL) && !url.contains("Login")) showVariantDialog(variantsObj);
                     }
-                },5*1000);
+                }, 5 * 1000);
             } else {
                 autoApplyClick(WebViewActivity.this);
             }
         }
     }
 
-    public static void autoApplyClick(Context context){ //Clicks automatically according to url
+    public static void autoApplyClick(Context context) { //Clicks automatically according to url
         if (currUrl.contains(AMAZON_URL)) applyAmazonClick();
-        else if (currUrl.contains(FLIPKART_URL) && ( currUrl.contains("?pid") || currUrl.contains("checkout") )) applyFlipkartClick();
+        else if (currUrl.contains(FLIPKART_URL) && (currUrl.contains("?pid") || currUrl.contains("checkout")))
+            applyFlipkartClick();
         else if (currUrl.contains(MI_URL)) applyMiClick();
     }
 
@@ -381,7 +391,7 @@ public class WebViewActivity extends AppCompatActivity {
                 "window.MyTag.addItem('')");
     }
 
-    private static void applyFlipkartClick(){
+    private static void applyFlipkartClick() {
         webView.loadUrl("javascript: " +
                 "    if (document.querySelectorAll('button').length > 1 &&" +
                 "        document.querySelectorAll('button')[2].innerText.includes('BUY')){" +
@@ -392,7 +402,7 @@ public class WebViewActivity extends AppCompatActivity {
         );
     }
 
-    private static void addToCartFlipkart(){
+    private static void addToCartFlipkart() {
         webView.loadUrl("javascript: " +
                 "function post(path, params, method) {" +
                 "    localStorage.bookingStarted = 1;" +
@@ -421,7 +431,7 @@ public class WebViewActivity extends AppCompatActivity {
                 "function addToCart(){" +
                 "        var data = {};" +
                 "        data['domain'] = 'physical';" +
-                "        data['eids'] = '"+getFlipkartEID()+"';" +
+                "        data['eids'] = '" + getFlipkartEID() + "';" +
                 "        data['otracker'] = 'nmenu_sub_Appliances_0_Fully Automatic Top Load'; " +
                 "        post('/checkout/init', data, 'post');" +
                 "}" +
@@ -429,15 +439,15 @@ public class WebViewActivity extends AppCompatActivity {
     }
 
     private static String getFlipkartPID() {
-        if (currUrl.contains("?pid")){
+        if (currUrl.contains("?pid")) {
             int startIndex = currUrl.indexOf("?pid=") + 5;
             return currUrl.substring(startIndex, startIndex + 16);
         } else return "";
     }
 
-    private static String getFlipkartEID(){
+    private static String getFlipkartEID() {
         String pid = getFlipkartPID();
-        switch(pid) {
+        switch (pid) {
             case "MOBEZWXESCPGF3GZ":
                 return "LSTMOBEZWXESCPGF3GZ7OIFQS";
 
@@ -523,7 +533,7 @@ public class WebViewActivity extends AppCompatActivity {
     } */
 
     private static void applyMiClick() {
-        webView.loadUrl("javascript: var prodIdSelected = '"+mi_pid+"';" +
+        webView.loadUrl("javascript: var prodIdSelected = '" + mi_pid + "';" +
                 "function buyNow(){" +
                 "   buyT = setInterval(function(){" +
                 "       if (document.getElementsByClassName('btn J_proBtn btn-primary') != null && document.getElementsByClassName('btn J_proBtn btn-primary').length > 0){" +
@@ -575,8 +585,8 @@ public class WebViewActivity extends AppCompatActivity {
                 "buyNow();");
     }*/
 
-    private static void applyAmazonClick(){
-        webView.loadUrl("javascript: var clickID = '"+clickID+"';" +
+    private static void applyAmazonClick() {
+        webView.loadUrl("javascript: var clickID = '" + clickID + "';" +
                 "function addToCart(){" +
                 "   someClick = setInterval(function(){" +
                 "       if(document.querySelectorAll('.dealTile').length > clickID){" +
@@ -630,10 +640,10 @@ public class WebViewActivity extends AppCompatActivity {
         tracker.send(new HitBuilders.ScreenViewBuilder().build());
     }
 
-    private int getScale(){
+    private int getScale() {
         Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
         int width = display.getWidth();
-        Double val = new Double(width)/1200;
+        Double val = new Double(width) / 1200;
         val = val * 100d;
         return val.intValue();
     }
