@@ -2,14 +2,22 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'my_key_alias'
+            keyPassword 'android'
+            storeFile file('../keystore/my_private_key.keystore')
+            storePassword 'android'
+        }
+    }
     compileSdkVersion 26
     buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.buyhatke.autocart"
         minSdkVersion 19
         targetSdkVersion 26
-        versionCode 15
-        versionName "2.3"
+        versionCode 16
+        versionName "2.4"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
